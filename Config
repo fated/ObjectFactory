@@ -8,13 +8,17 @@ package.DfObjectFactory = {
 
     dependencies = {
         1.0 = {
+            Reflections = 0.9.x;
+
+            # Spicy
+            SpicyUtil = 1.0;
         };
     };
 
-    # If you need Java at runtime, add a runtime dependency
-    # on OpenJDK8-1.1 and a remove-dependencies clause 
-    # for JDK8-1.0. For detailed instructions see:
-    # https://w.amazon.com/bin/view/JDKTeam/OpenJDK/ConfigSetup#HDirectConsumption
+    runtime-dependencies = {
+        1.0 = {
+        };
+    };
 
     test-dependencies = {
         1.0 = {
@@ -31,10 +35,7 @@ package.DfObjectFactory = {
 
     build-tools = {
         1.0 = {
-            # Use OpenJDK8 unless you need some features
-            # that only appear in Oracle JDK8. See:
-            # https://w.amazon.com/bin/view/JDKTeam/OpenJDK/ConfigSetup#HConsumingOracleJDK
-            OpenJDK8 = 1.1;
+            JDK8 = 1.0;
             HappierTrails = 3.3;
         };
     };

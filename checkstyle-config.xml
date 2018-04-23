@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
+    "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+
+<!--
+  This is an incredibly small checkstyle ruleset to get you
+started. The default HappierTrails is a lot more opinionated,
+and is a good place to look to get ideas for rules to add:
+https://code.amazon.com/packages/CheckstyleAntBuildLogic/blobs/mainline/%2d%2d/configuration/antfiles/checkstyle.xml
+-->
+<module name="Checker">
+  <property name="basedir" value="${basedir}"/>
+
+  <!-- Spaces instead of tabs -->
+  <module name="FileTabCharacter"/>
+
+  <module name="TreeWalker">
+
+    <!-- Force 100L instead of 100l -->
+    <module name="UpperEll"/>
+
+  </module>
+</module>

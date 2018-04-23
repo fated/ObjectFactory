@@ -2,18 +2,18 @@
 
 <project name="DfObjectFactory-1.0" basedir="." default="release" xmlns:ht="happytrails">
 
-  <!-- This is provided solely so that this package will build
-       out-of-the-box.  Feel free to remove this as soon as you add actual
-       content under the src/ and tst/ directories. -->
+  <property name="ht.include.cfg" value="true" />
   <property name="allow.empty.sources.dir" value="true" />
 
   <import file="${happytrails.root}/happytrails.xml"/>
 
-  <!-- Define HappierTrails property overrides here -->
-  <property name="tests.additional.jvmargs" value=""/>
+  <ht:import file="happier-trails.xml" optional="false"/>
+  <ht:import file="copy-with-permissions.xml" optional="false" />
 
-  <ht:import file="happier-trails.xml"/>
-  <!-- For more information on targets and how to override them, see
-       https://w.amazon.com/index.php/HappierTrails-3.0/Targets -->
+  <property name="findbugs.failOnError" value="true" />
+  <property name="findbugs.report.level" value="high" />
+  <property name="ht.findbugs.always.report" value="true" />
+
+  <property name="checkstyle.configuration.file" location="${basedir}/checkstyle-config.xml"/>
        
 </project>

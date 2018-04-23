@@ -6,6 +6,8 @@ import java.util.UUID;
 
 public class RandomStringProvider implements Provider {
 
+    private static final int RANDOM_CHARS_LENGTH = 3;
+    private static final int HIGH_CHAR_NO_SURROGATE = 0xD800;
     private final Random random;
 
     public RandomStringProvider(Random random) {
@@ -14,7 +16,7 @@ public class RandomStringProvider implements Provider {
 
     @Override
     public <T> T get(Type type) {
-        return (T) (new UUID(random.nextLong(), random.nextLong()).toString() + randomChars(3));
+        return (T) (new UUID(random.nextLong(), random.nextLong()).toString() + randomChars(RANDOM_CHARS_LENGTH));
     }
 
     @Override
@@ -24,10 +26,11 @@ public class RandomStringProvider implements Provider {
 
     private String randomChars(int length) {
         char[] sb = new char[length];
-        for(int i = 0; i < length; ++i){
+        for (int i = 0; i < length; ++i) {
             // Only strings without surrogates
-            sb[i] = (char)random.nextInt(0xD800);
+            sb[i] = (char) random.nextInt(HIGH_CHAR_NO_SURROGATE);
         }
         return new String(sb);
     }
+
 }

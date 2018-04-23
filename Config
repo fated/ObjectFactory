@@ -35,8 +35,11 @@ package.DfObjectFactory = {
 
     build-tools = {
         1.0 = {
-            JDK8 = 1.0;
-            HappierTrails = 3.3;
+            OpenJDK8 = 1.1;
+            HappierTrails = 3.4;
+
+            # Team build logic
+            DFJavaAntBuildLogic = 1.1;
         };
     };
 

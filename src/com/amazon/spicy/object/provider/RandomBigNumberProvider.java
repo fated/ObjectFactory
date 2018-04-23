@@ -10,17 +10,19 @@ import java.util.function.Function;
 
 public class RandomBigNumberProvider implements Provider {
 
-    private static Map<Type, Function<Random, Object>> FUNCTIONS = new HashMap<>();
+    private static final int MAXIMUM_BIT_LENGTH = 64;
+    private static final Map<Type, Function<Random, Object>> FUNCTIONS = new HashMap<>();
+
     static {
         FUNCTIONS.put(BigInteger.class, r -> {
-            BigInteger bi = new BigInteger(r.nextInt(64), r);
+            BigInteger bi = new BigInteger(r.nextInt(MAXIMUM_BIT_LENGTH), r);
             if (r.nextBoolean()) {
                 bi = bi.negate();
             }
             return bi;
         });
         FUNCTIONS.put(BigDecimal.class, r -> {
-            int scale = r.nextInt(64);
+            int scale = r.nextInt(MAXIMUM_BIT_LENGTH);
             if (r.nextBoolean()) {
                 scale = -scale;
             }
@@ -44,4 +46,5 @@ public class RandomBigNumberProvider implements Provider {
     public boolean recognizes(Type type) {
         return FUNCTIONS.containsKey(type);
     }
+
 }

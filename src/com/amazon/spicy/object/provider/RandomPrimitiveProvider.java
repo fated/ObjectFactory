@@ -8,11 +8,15 @@ import java.util.function.Function;
 
 public class RandomPrimitiveProvider implements Provider {
 
-    private static Map<Type, Function<Random, Object>> FUNCTIONS = new HashMap<>();
+    private static final int PRINTABLE_ASCII_CHAR_SIZE = 95;
+    private static final int PRINTABLE_ASCII_CHAR_START = 32;
+
+    private static final Map<Type, Function<Random, Object>> FUNCTIONS = new HashMap<>();
+
     static {
         FUNCTIONS.put(boolean.class, r -> r.nextBoolean());
         FUNCTIONS.put(byte.class, r -> (byte) r.nextInt());
-        FUNCTIONS.put(char.class, r -> (char) (r.nextInt(95) + 32));
+        FUNCTIONS.put(char.class, r -> (char) (r.nextInt(PRINTABLE_ASCII_CHAR_SIZE) + PRINTABLE_ASCII_CHAR_START));
         FUNCTIONS.put(short.class, r -> (short) r.nextInt());
         FUNCTIONS.put(int.class, r -> r.nextInt());
         FUNCTIONS.put(long.class, r -> Double.doubleToLongBits(r.nextDouble()));
@@ -43,4 +47,5 @@ public class RandomPrimitiveProvider implements Provider {
     public boolean recognizes(Type type) {
         return FUNCTIONS.containsKey(type);
     }
+
 }

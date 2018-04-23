@@ -14,24 +14,25 @@ import java.util.Set;
 
 public abstract class Inspector {
 
-    private static Set<Class<?>> EXPLICIT_PRIMITIVES = new HashSet<Class<?>>() {{
-        addAll(Arrays.asList(
-            boolean.class, Boolean.class,
-            byte.class, Byte.class,
-            char.class, Character.class,
-            short.class, Short.class,
-            int.class, Integer.class,
-            long.class, Long.class,
-            float.class, Float.class,
-            double.class, Double.class,
-            String.class,
-            ByteBuffer.class,
-            BigDecimal.class,
-            BigInteger.class,
-            Date.class,
-            Object.class
+    private static final Set<Class<?>> EXPLICIT_PRIMITIVES = new HashSet<Class<?>>();
+
+    static {
+        EXPLICIT_PRIMITIVES.addAll(Arrays.asList(boolean.class, Boolean.class,
+                                                 byte.class, Byte.class,
+                                                 char.class, Character.class,
+                                                 short.class, Short.class,
+                                                 int.class, Integer.class,
+                                                 long.class, Long.class,
+                                                 float.class, Float.class,
+                                                 double.class, Double.class,
+                                                 String.class,
+                                                 ByteBuffer.class,
+                                                 BigDecimal.class,
+                                                 BigInteger.class,
+                                                 Date.class,
+                                                 Object.class
         ));
-    }};
+    }
 
     public static boolean isExplicitPrimitive(Class<?> clazz) {
         return EXPLICIT_PRIMITIVES.contains(clazz);
@@ -61,6 +62,12 @@ public abstract class Inspector {
         return Modifier.isFinal(field.getModifiers());
     }
 
+    /**
+     * Get all fields of a class, including fields defined in super class.
+     *
+     * @param clazz class to find
+     * @return all fields found
+     */
     public static List<Field> getFields(Class<?> clazz) {
         List<Field> fields = new ArrayList<>();
         while (clazz != Object.class) {
@@ -69,4 +76,5 @@ public abstract class Inspector {
         }
         return fields;
     }
+
 }

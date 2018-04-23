@@ -1,6 +1,5 @@
 package com.amazon.spicy.object.cycle;
 
-
 import com.amazon.spicy.object.cycle.CycleDetector.CycleNode;
 
 public interface CycleTerminator {

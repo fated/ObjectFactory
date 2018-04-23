@@ -9,11 +9,14 @@ import java.util.function.Function;
 
 public class RandomBufferProvider implements Provider {
 
+    private static final int MAXIMUM_BYTE_LENGTH = 256;
+
     // TODO add other buffer types
-    private static Map<Type, Function<Random, Object>> FUNCTIONS = new HashMap<>();
+    private static final Map<Type, Function<Random, Object>> FUNCTIONS = new HashMap<>();
+
     static {
         FUNCTIONS.put(ByteBuffer.class, r -> {
-            byte[] bytes = new byte[r.nextInt(256)];
+            byte[] bytes = new byte[r.nextInt(MAXIMUM_BYTE_LENGTH)];
             r.nextBytes(bytes);
             return ByteBuffer.wrap(bytes);
         });
@@ -34,4 +37,5 @@ public class RandomBufferProvider implements Provider {
     public boolean recognizes(Type type) {
         return FUNCTIONS.containsKey(type);
     }
+
 }

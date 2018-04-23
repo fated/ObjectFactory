@@ -11,9 +11,9 @@ public final class CycleDetector {
     private CycleNode head;
     private CycleNode tail;
 
-    public final static class CycleNode {
+    public static final class CycleNode {
 
-        public final Type type;
+        private final Type type;
 
         private CycleNode next;
         private CycleNode previous;
@@ -60,7 +60,13 @@ public final class CycleDetector {
         }
     }
 
-    // given cycle A -> B -> C -> A, returns A -> B -> C
+    /**
+     * Start to find dependency cycle, and return cycle nodes.
+     * given cycle A -> B -> C -> A, returns A -> B -> C.
+     *
+     * @param type type to check
+     * @return cycle node detected
+     */
     public CycleNode start(Type type) {
         CycleNode start = index.get(type);
         if (start != null) {
@@ -85,7 +91,9 @@ public final class CycleDetector {
         return start;
     }
 
-    // only called when no cycle found
+    /**
+     * Only called when no cycle found.
+     */
     public void end() {
         if (tail == null) {
             throw new IllegalStateException("No nodes in graph");

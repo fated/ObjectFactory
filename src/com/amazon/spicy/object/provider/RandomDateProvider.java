@@ -6,6 +6,9 @@ import java.util.Random;
 
 public class RandomDateProvider implements Provider {
 
+    private static final long MILLIS_RANGE = 6342969599999L; //milliseconds between jan 1 1900 and Dec 31 2100
+    private static final long FIRST_MILLIS = -2208988800000L; //first second of 1900
+
     private Random random;
 
     public RandomDateProvider(Random random) {
@@ -13,20 +16,21 @@ public class RandomDateProvider implements Provider {
     }
 
     @Override
-    public <T>  T get(Type type) {
+    public <T> T get(Type type) {
         long randomValue = random.nextLong();
 
         randomValue = randomValue == Long.MIN_VALUE ? 0 : Math.abs(randomValue);
 
-        randomValue %= 6342969599999L; //milliseconds between jan 1 1900 and Dec 31 2100
+        randomValue %= MILLIS_RANGE;
 
-        Date d = new Date(-2208988800000L + randomValue); //first second of 1900
+        Date d = new Date(FIRST_MILLIS + randomValue);
 
-        return (T)d;
+        return (T) d;
     }
 
     @Override
     public boolean recognizes(Type type) {
         return Date.class.equals(type);
     }
+
 }

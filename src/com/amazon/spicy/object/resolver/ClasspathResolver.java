@@ -1,5 +1,10 @@
 package com.amazon.spicy.object.resolver;
 
+import static com.amazon.spicy.object.util.Inspector.isAbstract;
+import static com.amazon.spicy.object.util.Inspector.isInterface;
+
+import org.reflections.Reflections;
+
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,16 +18,11 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
 
-import static com.amazon.spicy.object.util.Inspector.isAbstract;
-import static com.amazon.spicy.object.util.Inspector.isInterface;
-import static com.amazon.spicy.object.util.Inspector.isStatic;
-import org.reflections.Reflections;
-
 public class ClasspathResolver implements Resolver {
 
     private static final List<Class<? extends Collection>> COLLECTIONS = Arrays.asList(
-        ArrayList.class, LinkedList.class, Vector.class,
-        HashSet.class, LinkedHashSet.class);
+            ArrayList.class, LinkedList.class, Vector.class,
+            HashSet.class, LinkedHashSet.class);
 
     private final Reflections reflections;
 
@@ -59,4 +59,5 @@ public class ClasspathResolver implements Resolver {
         }
         return null;
     }
+
 }

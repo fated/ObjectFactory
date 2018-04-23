@@ -1,9 +1,10 @@
 package com.amazon.spicy.object.binding;
 
-import java.lang.reflect.Type;
-
 import com.amazon.spicy.object.provider.Provider;
 
+import java.lang.reflect.Type;
+
+@SuppressWarnings("VisibilityModifier")
 public interface Binding {
 
     class FieldNameBinding implements Binding {

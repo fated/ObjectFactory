@@ -1,5 +1,32 @@
 package com.amazon.spicy.object;
 
+import static com.amazon.spicy.object.util.Inspector.getFields;
+import static com.amazon.spicy.object.util.Inspector.isAbstract;
+import static com.amazon.spicy.object.util.Inspector.isExplicitPrimitive;
+import static com.amazon.spicy.object.util.Inspector.isInterface;
+import static com.amazon.spicy.object.util.Inspector.isStatic;
+import static com.amazon.spicy.object.util.Inspector.isTransient;
+import static com.amazon.spicy.object.util.Inspector.isVolatile;
+
+import com.amazon.spicy.object.binding.Binding;
+import com.amazon.spicy.object.binding.Binding.FieldNameBinding;
+import com.amazon.spicy.object.binding.Binding.FieldTypeBinding;
+import com.amazon.spicy.object.binding.Binding.GlobalFieldNameBinding;
+import com.amazon.spicy.object.binding.Binding.GlobalFieldTypeBinding;
+import com.amazon.spicy.object.cycle.CycleDetector;
+import com.amazon.spicy.object.cycle.CycleDetector.CycleNode;
+import com.amazon.spicy.object.cycle.CycleTerminator;
+import com.amazon.spicy.object.cycle.NullCycleTerminator;
+import com.amazon.spicy.object.provider.Provider;
+import com.amazon.spicy.object.provider.RandomBigNumberProvider;
+import com.amazon.spicy.object.provider.RandomBufferProvider;
+import com.amazon.spicy.object.provider.RandomPrimitiveProvider;
+import com.amazon.spicy.object.provider.RandomStringProvider;
+import com.amazon.spicy.object.resolver.ClasspathResolver;
+import com.amazon.spicy.object.resolver.Resolver;
+import com.amazon.spicy.util.TheUnsafe;
+import com.amazon.spicy.util.Throwables;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.GenericArrayType;
@@ -20,49 +47,20 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
-
 import java.util.function.BiFunction;
-
-import com.amazon.spicy.object.binding.Binding;
-import com.amazon.spicy.object.binding.Binding.FieldNameBinding;
-import com.amazon.spicy.object.binding.Binding.FieldTypeBinding;
-import com.amazon.spicy.object.binding.Binding.GlobalFieldTypeBinding;
-import com.amazon.spicy.object.binding.Binding.GlobalFieldNameBinding;
-import com.amazon.spicy.object.cycle.CycleDetector;
-import com.amazon.spicy.object.cycle.CycleDetector.CycleNode;
-import com.amazon.spicy.object.cycle.CycleTerminator;
-import com.amazon.spicy.object.cycle.NullCycleTerminator;
-import com.amazon.spicy.object.provider.Provider;
-import com.amazon.spicy.object.provider.RandomBigNumberProvider;
-import com.amazon.spicy.object.provider.RandomBufferProvider;
-import com.amazon.spicy.object.provider.RandomDateProvider;
-import com.amazon.spicy.object.provider.RandomPrimitiveProvider;
-import com.amazon.spicy.object.provider.RandomStringProvider;
-import com.amazon.spicy.object.resolver.ClasspathResolver;
-import com.amazon.spicy.object.resolver.Resolver;
-import static com.amazon.spicy.object.util.Inspector.getFields;
-import static com.amazon.spicy.object.util.Inspector.isAbstract;
-import static com.amazon.spicy.object.util.Inspector.isExplicitPrimitive;
-import static com.amazon.spicy.object.util.Inspector.isFinal;
-import static com.amazon.spicy.object.util.Inspector.isInterface;
-import static com.amazon.spicy.object.util.Inspector.isStatic;
-import static com.amazon.spicy.object.util.Inspector.isTransient;
-import static com.amazon.spicy.object.util.Inspector.isVolatile;
-import com.amazon.spicy.util.TheUnsafe;
-import com.amazon.spicy.util.Throwables;
-
 
 public class ObjectFactory {
 
-    public static final int DEFAULT_MIN_MAP_ENTRIES         = 1;
-    public static final int DEFAULT_MIN_ARRAY_LENGTH        = 1;
-    public static final int DEFAULT_MIN_COLLECTION_LENGTH   = 1;
-    public static final int DEFAULT_MAX_MAP_ENTRIES         = 10;
-    public static final int DEFAULT_MAX_ARRAY_LENGTH        = 10;
-    public static final int DEFAULT_MAX_COLLECTION_LENGTH   = 10;
+    public static final int DEFAULT_MIN_MAP_ENTRIES = 1;
+    public static final int DEFAULT_MIN_ARRAY_LENGTH = 1;
+    public static final int DEFAULT_MIN_COLLECTION_LENGTH = 1;
+    public static final int DEFAULT_MAX_MAP_ENTRIES = 10;
+    public static final int DEFAULT_MAX_ARRAY_LENGTH = 10;
+    public static final int DEFAULT_MAX_COLLECTION_LENGTH = 10;
 
     public static final boolean DEFAULT_FAIL_ON_MISSING_PRIMITIVE_PROVIDER = false;
 
+    @SuppressWarnings("HiddenField")
     public static class Builder {
 
         private Binding[] bindings;
@@ -71,14 +69,14 @@ public class ObjectFactory {
         private CycleTerminator[] terminators;
         private Random random;
 
-        private int minArrayLength      = DEFAULT_MIN_ARRAY_LENGTH;
-        private int maxArrayLength      = DEFAULT_MAX_ARRAY_LENGTH;
+        private int minArrayLength = DEFAULT_MIN_ARRAY_LENGTH;
+        private int maxArrayLength = DEFAULT_MAX_ARRAY_LENGTH;
 
         private int minCollectionLength = DEFAULT_MIN_COLLECTION_LENGTH;
         private int maxCollectionLength = DEFAULT_MAX_COLLECTION_LENGTH;
 
-        private int minMapEntries       = DEFAULT_MIN_MAP_ENTRIES;
-        private int maxMapEntries       = DEFAULT_MAX_MAP_ENTRIES;
+        private int minMapEntries = DEFAULT_MIN_MAP_ENTRIES;
+        private int maxMapEntries = DEFAULT_MAX_MAP_ENTRIES;
 
         private boolean failOnMissingPrimitiveProvider = DEFAULT_FAIL_ON_MISSING_PRIMITIVE_PROVIDER;
 
@@ -159,6 +157,11 @@ public class ObjectFactory {
             return b;
         }
 
+        /**
+         * Build the configured object factory.
+         *
+         * @return an instance of object factory
+         */
         public ObjectFactory build() {
             if (maxArrayLength < 0) {
                 throw new IllegalArgumentException("Max array length must be non-negative");
@@ -176,44 +179,47 @@ public class ObjectFactory {
         }
     }
 
-    private static final Builder DEFAULT_OBJECT_FACTORY_BUILDER = new Builder()
-            .minMapEntries(DEFAULT_MIN_MAP_ENTRIES)
-            .maxMapEntries(DEFAULT_MAX_MAP_ENTRIES)
-            .minArrayLength(DEFAULT_MIN_ARRAY_LENGTH)
-            .maxArrayLength(DEFAULT_MAX_ARRAY_LENGTH)
-            .minCollectionLength(DEFAULT_MIN_COLLECTION_LENGTH)
-            .maxCollectionLength(DEFAULT_MAX_COLLECTION_LENGTH)
-            .terminators(new NullCycleTerminator())
-            .resolvers(new ClasspathResolver())
-            .providers(
-                    (f, r) -> new RandomPrimitiveProvider(r),
-                    (f, r) -> new RandomBigNumberProvider(r),
-                    (f, r) -> new RandomStringProvider(r),
-                    (f, r) -> new RandomBufferProvider(r));
+    private static final Builder DEFAULT_OBJECT_FACTORY_BUILDER =
+            new Builder()
+                    .minMapEntries(DEFAULT_MIN_MAP_ENTRIES)
+                    .maxMapEntries(DEFAULT_MAX_MAP_ENTRIES)
+                    .minArrayLength(DEFAULT_MIN_ARRAY_LENGTH)
+                    .maxArrayLength(DEFAULT_MAX_ARRAY_LENGTH)
+                    .minCollectionLength(DEFAULT_MIN_COLLECTION_LENGTH)
+                    .maxCollectionLength(DEFAULT_MAX_COLLECTION_LENGTH)
+                    .terminators(new NullCycleTerminator())
+                    .resolvers(new ClasspathResolver())
+                    .providers(
+                            (f, r) -> new RandomPrimitiveProvider(r),
+                            (f, r) -> new RandomBigNumberProvider(r),
+                            (f, r) -> new RandomStringProvider(r),
+                            (f, r) -> new RandomBufferProvider(r)
+                    );
 
-    private static final Map<Class<?>, Object> DEFAULT_EXPLICIT_PRIMITIVES = new HashMap<Class<?>, Object>() {{
-        put(boolean.class, false);
-        put(Boolean.class, false);
-        put(byte.class, 0);
-        put(Byte.class, 0);
-        put(char.class, 'a');
-        put(Character.class, 'a');
-        put(short.class, 0);
-        put(Short.class, 0);
-        put(int.class, 0);
-        put(Integer.class, 0);
-        put(long.class, 0);
-        put(Long.class, 0);
-        put(float.class, 0);
-        put(Float.class, 0);
-        put(double.class, 0);
-        put(Double.class, 0);
-        put(ByteBuffer.class, ByteBuffer.allocate(0));
-        put(String.class, "");
-        put(Date.class, new Date());
-        put(Object.class, new Object());
-    }};
+    private static final Map<Class<?>, Object> DEFAULT_EXPLICIT_PRIMITIVES = new HashMap<>();
 
+    static {
+        DEFAULT_EXPLICIT_PRIMITIVES.put(boolean.class, false);
+        DEFAULT_EXPLICIT_PRIMITIVES.put(Boolean.class, false);
+        DEFAULT_EXPLICIT_PRIMITIVES.put(byte.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES.put(Byte.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES.put(char.class, 'a');
+        DEFAULT_EXPLICIT_PRIMITIVES.put(Character.class, 'a');
+        DEFAULT_EXPLICIT_PRIMITIVES.put(short.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES.put(Short.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES.put(int.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES.put(Integer.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES.put(long.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES.put(Long.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES.put(float.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES.put(Float.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES.put(double.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES.put(Double.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES.put(ByteBuffer.class, ByteBuffer.allocate(0));
+        DEFAULT_EXPLICIT_PRIMITIVES.put(String.class, "");
+        DEFAULT_EXPLICIT_PRIMITIVES.put(Date.class, new Date());
+        DEFAULT_EXPLICIT_PRIMITIVES.put(Object.class, new Object());
+    }
 
     public static ObjectFactory getDefaultObjectFactory(Random random) {
         return DEFAULT_OBJECT_FACTORY_BUILDER.copy().random(random).build();
@@ -250,7 +256,9 @@ public class ObjectFactory {
 
     private ObjectFactory(Builder builder) {
         resolvers = builder.resolvers;
-        providers = builder.providers != null ? Arrays.stream(builder.providers).map((f) -> f.apply(this, builder.random)).toArray(Provider[]::new) : null;
+        providers = builder.providers != null
+                    ? Arrays.stream(builder.providers).map(f -> f.apply(this, builder.random)).toArray(Provider[]::new)
+                    : null;
         terminators = builder.terminators;
         random = builder.random;
         minArrayLength = builder.minArrayLength;
@@ -263,6 +271,13 @@ public class ObjectFactory {
         processBindings(builder.bindings);
     }
 
+    /**
+     * Generate an object of type.
+     *
+     * @param type the type to create
+     * @param <T> the type to create
+     * @return
+     */
     public <T> T generate(Type type) {
         CycleNode cycle = cycleDetector.start(type);
 
@@ -325,7 +340,7 @@ public class ObjectFactory {
                 return array;
             }
 
-        }finally{
+        } finally {
             cycleDetector.end();
         }
         throw new IllegalArgumentException(String.format("Unrecognized type %s", type));
@@ -383,9 +398,9 @@ public class ObjectFactory {
 
     private <T> T generateObject(Class<?> clazz) {
         if ("com.amazon.coral.Envelope".equals(clazz.getName())) {
-            throw new IllegalArgumentException("Ouch! Looks like you're trying to " +
-                "generate a Coral Envelope. This isn't implicitly supported, initialize " +
-                "your object factory with an appropriate Envelope provider");
+            throw new IllegalArgumentException("Ouch! Looks like you're trying to generate a Coral Envelope."
+                                                       + " This isn't implicitly supported, initialize "
+                                                       + "your object factory with an appropriate Envelope provider");
         }
 
         if (isInterface(clazz) || isAbstract(clazz)) {
@@ -427,7 +442,7 @@ public class ObjectFactory {
 
         Object array;
         if (component instanceof Class) {
-            array = Array.newInstance((Class<?>)component, length);
+            array = Array.newInstance((Class<?>) component, length);
         } else {
             array = Array.newInstance(Object.class, length);
         }
@@ -444,7 +459,7 @@ public class ObjectFactory {
             if (resolved != null) {
                 if (isInterface(resolved) || isAbstract(resolved)) {
                     throw new IllegalStateException(String.format("%s resolved %s to non-concrete type %s",
-                        resolver.getClass(), clazz, resolved));
+                                                                  resolver.getClass(), clazz, resolved));
                 }
                 return resolved;
             }
@@ -455,8 +470,8 @@ public class ObjectFactory {
     private CycleTerminator getTerminator(CycleNode cycle) {
         if (terminators == null) {
             throw new IllegalStateException(String.format(
-                "Unable to terminate cycle %s, configure the Object Factory with an appropriate " +
-                "cycle terminator to avoid this error", cycle));
+                    "Unable to terminate cycle %s, configure the Object Factory with an appropriate "
+                            + "cycle terminator to avoid this error", cycle));
         }
 
         for (CycleTerminator terminator : terminators) {
@@ -466,8 +481,8 @@ public class ObjectFactory {
         }
 
         throw new IllegalStateException(String.format(
-            "Unable to terminate cycle %s, configure the Object Factory with an appropriate " +
-            "cycle terminator to avoid this error", cycle));
+                "Unable to terminate cycle %s, configure the Object Factory with an appropriate "
+                        + "cycle terminator to avoid this error", cycle));
     }
 
     private Provider getProvider(Type type) {
@@ -516,7 +531,8 @@ public class ObjectFactory {
         for (Binding binding : bindings) {
             if (binding instanceof FieldNameBinding) {
                 FieldNameBinding fieldNameBinding = (FieldNameBinding) binding;
-                Map<String, Provider> nameBindings = fieldNameBindings.getOrDefault(fieldNameBinding.type, new HashMap<>());
+                Map<String, Provider> nameBindings =
+                        fieldNameBindings.getOrDefault(fieldNameBinding.type, new HashMap<>());
                 if (nameBindings.containsKey(fieldNameBinding.name)) {
                     throw new IllegalArgumentException("Cannot provide multiple bindings for the same field name");
                 }
@@ -524,7 +540,8 @@ public class ObjectFactory {
                 fieldNameBindings.putIfAbsent(fieldNameBinding.type, nameBindings);
             } else if (binding instanceof FieldTypeBinding) {
                 FieldTypeBinding fieldTypeBinding = (FieldTypeBinding) binding;
-                Map<Type, Provider> typeBindings = fieldTypeBindings.getOrDefault(fieldTypeBinding.container, new HashMap<>());
+                Map<Type, Provider> typeBindings =
+                        fieldTypeBindings.getOrDefault(fieldTypeBinding.container, new HashMap<>());
                 if (typeBindings.containsKey(fieldTypeBinding.fieldType)) {
                     throw new IllegalArgumentException("Cannot provide multiple bindings for the same field type");
                 }
@@ -533,13 +550,15 @@ public class ObjectFactory {
             } else if (binding instanceof GlobalFieldTypeBinding) {
                 GlobalFieldTypeBinding globalFieldTypeBinding = (GlobalFieldTypeBinding) binding;
                 if (globalTypeBindings.containsKey(globalFieldTypeBinding.fieldType)) {
-                    throw new IllegalArgumentException("Cannot provide multiple global bindings for the same field type");
+                    throw new IllegalArgumentException(
+                            "Cannot provide multiple global bindings for the same field type");
                 }
                 globalTypeBindings.put(globalFieldTypeBinding.fieldType, globalFieldTypeBinding.provider);
             } else if (binding instanceof GlobalFieldNameBinding) {
                 GlobalFieldNameBinding globalFieldNameBinding = (GlobalFieldNameBinding) binding;
                 if (globalNameBindings.containsKey(globalFieldNameBinding.fieldName)) {
-                    throw new IllegalArgumentException("Cannot provide multiple global bindings for the same field type");
+                    throw new IllegalArgumentException(
+                            "Cannot provide multiple global bindings for the same field type");
                 }
                 globalNameBindings.put(globalFieldNameBinding.fieldName, globalFieldNameBinding.provider);
             } else {
@@ -555,14 +574,13 @@ public class ObjectFactory {
     private void validateParameterizedType(ParameterizedType parameterizedType) {
         Type raw = parameterizedType.getRawType();
         if (!(raw instanceof Class)) {
-            throw new UnsupportedOperationException("Non-class raw types are " +
-                "not supported for parameterized types");
+            throw new UnsupportedOperationException("Non-class raw types are not supported for parameterized types");
         }
 
-        if (!Collection.class.isAssignableFrom((Class<?>)raw) &&
-            !Map.class.isAssignableFrom((Class<?>)raw)) {
+        if (!Collection.class.isAssignableFrom((Class<?>) raw)
+                    && !Map.class.isAssignableFrom((Class<?>) raw)) {
             throw new IllegalArgumentException(String.format("Unrecognized parameterized type %s",
-                parameterizedType));
+                                                             parameterizedType));
         }
     }
 
@@ -583,4 +601,5 @@ public class ObjectFactory {
             throw Throwables.sneakyThrow(e);
         }
     }
+
 }

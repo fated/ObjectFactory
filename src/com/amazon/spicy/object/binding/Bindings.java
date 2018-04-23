@@ -1,12 +1,12 @@
 package com.amazon.spicy.object.binding;
 
-import java.lang.reflect.Type;
-
 import com.amazon.spicy.object.binding.Binding.FieldNameBinding;
 import com.amazon.spicy.object.binding.Binding.FieldTypeBinding;
-import com.amazon.spicy.object.binding.Binding.GlobalFieldTypeBinding;
 import com.amazon.spicy.object.binding.Binding.GlobalFieldNameBinding;
+import com.amazon.spicy.object.binding.Binding.GlobalFieldTypeBinding;
 import com.amazon.spicy.object.provider.Provider;
+
+import java.lang.reflect.Type;
 
 public abstract class Bindings {
 
@@ -15,7 +15,7 @@ public abstract class Bindings {
     }
 
     public static Binding bind(String name, Provider provider) {
-        return new GlobalFieldNameBinding( name, provider);
+        return new GlobalFieldNameBinding(name, provider);
     }
 
     public static Binding bind(Type type, Type fieldType, Provider provider) {

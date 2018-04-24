@@ -1,9 +1,10 @@
-package com.amazon.spicy.object.binding;
+package com.amazon.df.object.binding;
 
 import java.lang.reflect.Type;
 
-import com.amazon.spicy.object.ObjectFactory;
-import com.amazon.spicy.object.provider.Provider;
+import com.amazon.df.object.provider.Provider;
+import com.amazon.df.object.ObjectFactory;
+
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 

@@ -1,4 +1,4 @@
-package com.amazon.spicy.object;
+package com.amazon.df.object;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -7,8 +7,9 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.HashMap;
 
-import com.amazon.spicy.object.provider.DeterministicProvider;
-import com.amazon.spicy.object.provider.Provider;
+import com.amazon.df.object.provider.DeterministicProvider;
+import com.amazon.df.object.provider.Provider;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Before;

@@ -1,29 +1,17 @@
-package com.amazon.spicy.object;
+package com.amazon.df.object;
 
-import static com.amazon.spicy.object.util.Inspector.getFields;
-import static com.amazon.spicy.object.util.Inspector.isAbstract;
-import static com.amazon.spicy.object.util.Inspector.isExplicitPrimitive;
-import static com.amazon.spicy.object.util.Inspector.isInterface;
-import static com.amazon.spicy.object.util.Inspector.isStatic;
-import static com.amazon.spicy.object.util.Inspector.isTransient;
-import static com.amazon.spicy.object.util.Inspector.isVolatile;
-
-import com.amazon.spicy.object.binding.Binding;
-import com.amazon.spicy.object.binding.Binding.FieldNameBinding;
-import com.amazon.spicy.object.binding.Binding.FieldTypeBinding;
-import com.amazon.spicy.object.binding.Binding.GlobalFieldNameBinding;
-import com.amazon.spicy.object.binding.Binding.GlobalFieldTypeBinding;
-import com.amazon.spicy.object.cycle.CycleDetector;
-import com.amazon.spicy.object.cycle.CycleDetector.CycleNode;
-import com.amazon.spicy.object.cycle.CycleTerminator;
-import com.amazon.spicy.object.cycle.NullCycleTerminator;
-import com.amazon.spicy.object.provider.Provider;
-import com.amazon.spicy.object.provider.RandomBigNumberProvider;
-import com.amazon.spicy.object.provider.RandomBufferProvider;
-import com.amazon.spicy.object.provider.RandomPrimitiveProvider;
-import com.amazon.spicy.object.provider.RandomStringProvider;
-import com.amazon.spicy.object.resolver.ClasspathResolver;
-import com.amazon.spicy.object.resolver.Resolver;
+import com.amazon.df.object.binding.Binding;
+import com.amazon.df.object.cycle.CycleDetector;
+import com.amazon.df.object.cycle.CycleTerminator;
+import com.amazon.df.object.cycle.NullCycleTerminator;
+import com.amazon.df.object.provider.Provider;
+import com.amazon.df.object.provider.RandomBigNumberProvider;
+import com.amazon.df.object.provider.RandomBufferProvider;
+import com.amazon.df.object.provider.RandomPrimitiveProvider;
+import com.amazon.df.object.provider.RandomStringProvider;
+import com.amazon.df.object.resolver.ClasspathResolver;
+import com.amazon.df.object.resolver.Resolver;
+import com.amazon.df.object.util.Inspector;
 import com.amazon.spicy.util.TheUnsafe;
 import com.amazon.spicy.util.Throwables;
 
@@ -279,7 +267,7 @@ public class ObjectFactory {
      * @return
      */
     public <T> T generate(Type type) {
-        CycleNode cycle = cycleDetector.start(type);
+        CycleDetector.CycleNode cycle = cycleDetector.start(type);
 
         if (cycle != null) {
             return getTerminator(cycle).terminate(cycle);
@@ -297,7 +285,7 @@ public class ObjectFactory {
             if (type instanceof Class) {
                 Class<?> clazz = (Class<?>) type;
                 validateClass(clazz);
-                if (isExplicitPrimitive(clazz)) {
+                if (Inspector.isExplicitPrimitive(clazz)) {
                     // Provider wasn't provided for this primitive
                     if (failOnMissingPrimitiveProvider) {
                         throw new IllegalStateException(String.format("Provider not found for %s", clazz));
@@ -350,7 +338,7 @@ public class ObjectFactory {
         Map<?, ?> map;
         int entries = random.nextInt(maxMapEntries - minMapEntries + 1) + minMapEntries;
         Class<?> clazz = (Class<?>) type.getRawType();
-        if (isInterface(clazz) || isAbstract(clazz)) {
+        if (Inspector.isInterface(clazz) || Inspector.isAbstract(clazz)) {
             if (Map.class.isAssignableFrom(clazz)) {
                 map = new HashMap<>(entries);
             } else {
@@ -374,7 +362,7 @@ public class ObjectFactory {
         Collection<?> collection;
         int length = random.nextInt(maxCollectionLength - minCollectionLength + 1) + minCollectionLength;
         Class<?> clazz = (Class<?>) type.getRawType();
-        if (isInterface(clazz) || isAbstract(clazz)) {
+        if (Inspector.isInterface(clazz) || Inspector.isAbstract(clazz)) {
             if (Set.class.isAssignableFrom(clazz)) {
                 collection = new HashSet<>(length);
             } else if (List.class.isAssignableFrom(clazz)) {
@@ -403,7 +391,7 @@ public class ObjectFactory {
                                                        + "your object factory with an appropriate Envelope provider");
         }
 
-        if (isInterface(clazz) || isAbstract(clazz)) {
+        if (Inspector.isInterface(clazz) || Inspector.isAbstract(clazz)) {
             clazz = resolveConcreteType(clazz);
         }
 
@@ -414,7 +402,7 @@ public class ObjectFactory {
             throw Throwables.sneakyThrow(e);
         }
 
-        for (Field field : getFields(clazz)) {
+        for (Field field : Inspector.getFields(clazz)) {
             if (!shouldPopulate(field)) {
                 continue;
             }
@@ -457,7 +445,7 @@ public class ObjectFactory {
         for (Resolver resolver : resolvers) {
             Class<?> resolved = resolver.resolve(clazz);
             if (resolved != null) {
-                if (isInterface(resolved) || isAbstract(resolved)) {
+                if (Inspector.isInterface(resolved) || Inspector.isAbstract(resolved)) {
                     throw new IllegalStateException(String.format("%s resolved %s to non-concrete type %s",
                                                                   resolver.getClass(), clazz, resolved));
                 }
@@ -467,7 +455,7 @@ public class ObjectFactory {
         throw new IllegalStateException(String.format("Unable to resolve %s to concrete type", clazz));
     }
 
-    private CycleTerminator getTerminator(CycleNode cycle) {
+    private CycleTerminator getTerminator(CycleDetector.CycleNode cycle) {
         if (terminators == null) {
             throw new IllegalStateException(String.format(
                     "Unable to terminate cycle %s, configure the Object Factory with an appropriate "
@@ -529,8 +517,8 @@ public class ObjectFactory {
             return;
         }
         for (Binding binding : bindings) {
-            if (binding instanceof FieldNameBinding) {
-                FieldNameBinding fieldNameBinding = (FieldNameBinding) binding;
+            if (binding instanceof Binding.FieldNameBinding) {
+                Binding.FieldNameBinding fieldNameBinding = (Binding.FieldNameBinding) binding;
                 Map<String, Provider> nameBindings =
                         fieldNameBindings.getOrDefault(fieldNameBinding.type, new HashMap<>());
                 if (nameBindings.containsKey(fieldNameBinding.name)) {
@@ -538,8 +526,8 @@ public class ObjectFactory {
                 }
                 nameBindings.put(fieldNameBinding.name, fieldNameBinding.provider);
                 fieldNameBindings.putIfAbsent(fieldNameBinding.type, nameBindings);
-            } else if (binding instanceof FieldTypeBinding) {
-                FieldTypeBinding fieldTypeBinding = (FieldTypeBinding) binding;
+            } else if (binding instanceof Binding.FieldTypeBinding) {
+                Binding.FieldTypeBinding fieldTypeBinding = (Binding.FieldTypeBinding) binding;
                 Map<Type, Provider> typeBindings =
                         fieldTypeBindings.getOrDefault(fieldTypeBinding.container, new HashMap<>());
                 if (typeBindings.containsKey(fieldTypeBinding.fieldType)) {
@@ -547,15 +535,15 @@ public class ObjectFactory {
                 }
                 typeBindings.put(fieldTypeBinding.fieldType, fieldTypeBinding.provider);
                 fieldTypeBindings.putIfAbsent(fieldTypeBinding.container, typeBindings);
-            } else if (binding instanceof GlobalFieldTypeBinding) {
-                GlobalFieldTypeBinding globalFieldTypeBinding = (GlobalFieldTypeBinding) binding;
+            } else if (binding instanceof Binding.GlobalFieldTypeBinding) {
+                Binding.GlobalFieldTypeBinding globalFieldTypeBinding = (Binding.GlobalFieldTypeBinding) binding;
                 if (globalTypeBindings.containsKey(globalFieldTypeBinding.fieldType)) {
                     throw new IllegalArgumentException(
                             "Cannot provide multiple global bindings for the same field type");
                 }
                 globalTypeBindings.put(globalFieldTypeBinding.fieldType, globalFieldTypeBinding.provider);
-            } else if (binding instanceof GlobalFieldNameBinding) {
-                GlobalFieldNameBinding globalFieldNameBinding = (GlobalFieldNameBinding) binding;
+            } else if (binding instanceof Binding.GlobalFieldNameBinding) {
+                Binding.GlobalFieldNameBinding globalFieldNameBinding = (Binding.GlobalFieldNameBinding) binding;
                 if (globalNameBindings.containsKey(globalFieldNameBinding.fieldName)) {
                     throw new IllegalArgumentException(
                             "Cannot provide multiple global bindings for the same field type");
@@ -568,7 +556,7 @@ public class ObjectFactory {
     }
 
     private boolean shouldPopulate(Field field) {
-        return !isVolatile(field) && !isStatic(field) && !isTransient(field);
+        return !Inspector.isVolatile(field) && !Inspector.isStatic(field) && !Inspector.isTransient(field);
     }
 
     private void validateParameterizedType(ParameterizedType parameterizedType) {

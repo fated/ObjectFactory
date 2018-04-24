@@ -1,6 +1,6 @@
-package com.amazon.spicy.object.cycle;
+package com.amazon.df.object.cycle;
 
-import com.amazon.spicy.object.cycle.CycleDetector.CycleNode;
+import com.amazon.df.object.cycle.CycleDetector.CycleNode;
 
 public class NullCycleTerminator implements CycleTerminator {
 

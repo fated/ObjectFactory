@@ -1,4 +1,4 @@
-package com.amazon.spicy.object.resolver;
+package com.amazon.df.object.resolver;
 
 public interface Resolver {
 

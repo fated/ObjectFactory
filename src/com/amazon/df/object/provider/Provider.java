@@ -1,4 +1,4 @@
-package com.amazon.spicy.object.provider;
+package com.amazon.df.object.provider;
 
 import java.lang.reflect.Type;
 

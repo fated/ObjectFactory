@@ -1,4 +1,4 @@
-package com.amazon.spicy.object.util;
+package com.amazon.df.object.util;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;

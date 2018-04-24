@@ -1,4 +1,4 @@
-package com.amazon.spicy.object.cycle;
+package com.amazon.df.object.cycle;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;

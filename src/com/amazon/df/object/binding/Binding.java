@@ -1,6 +1,6 @@
-package com.amazon.spicy.object.binding;
+package com.amazon.df.object.binding;
 
-import com.amazon.spicy.object.provider.Provider;
+import com.amazon.df.object.provider.Provider;
 
 import java.lang.reflect.Type;
 

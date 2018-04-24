@@ -1,7 +1,6 @@
-package com.amazon.spicy.object.resolver;
+package com.amazon.df.object.resolver;
 
-import static com.amazon.spicy.object.util.Inspector.isAbstract;
-import static com.amazon.spicy.object.util.Inspector.isInterface;
+import com.amazon.df.object.util.Inspector;
 
 import org.reflections.Reflections;
 
@@ -49,7 +48,7 @@ public class ClasspathResolver implements Resolver {
         }
 
         for (Class<? extends T> type : reflections.getSubTypesOf(clazz)) {
-            if (isAbstract(type) || isInterface(type) || type.isAnonymousClass()) {
+            if (Inspector.isAbstract(type) || Inspector.isInterface(type) || type.isAnonymousClass()) {
                 continue;
             }
             if (type.isMemberClass() && (type.getModifiers() & Modifier.STATIC) == 0) {

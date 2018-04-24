@@ -31,7 +31,6 @@ public final class DefaultClassSpy implements ClassSpy {
     @Override
     public List<Method> findMethods(final Class<?> clazz, final Predicate<Method> methodFilter) {
         // Gets inherited methods too
-        // method.getName().startsWith(namePrefix)
         return Arrays.stream(clazz.getMethods())
                      .filter(methodFilter)
                      .collect(Collectors.toList());
@@ -41,8 +40,8 @@ public final class DefaultClassSpy implements ClassSpy {
     public List<Field> findFields(Class<?> clazz, Predicate<Field> fieldFilter) {
         Class<?> curClazz = clazz;
         List<Field> fields = new ArrayList<>();
-        while (clazz != Object.class) {
-            fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+        while (curClazz != Object.class) {
+            fields.addAll(Arrays.asList(curClazz.getDeclaredFields()));
             curClazz = curClazz.getSuperclass();
         }
 

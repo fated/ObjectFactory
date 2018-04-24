@@ -17,6 +17,7 @@ import lombok.Getter;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -27,7 +28,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -157,17 +160,51 @@ public class ObjectFactory {
         return populateFields(concreteClazz, instance);
     }
 
+    private Predicate<Method> methodFilter =
+        method -> method.getName().startsWith("set") && method.getParameterCount() == 1;
+
+    private static String uncapitalize(final String str) {
+        if (str == null || str.length() == 0) {
+            return str;
+        }
+
+        int strLen = str.length();
+
+        final char firstChar = str.charAt(0);
+        if (Character.isLowerCase(firstChar)) {
+            // already uncapitalized
+            return str;
+        }
+
+        return new StringBuilder(strLen)
+                       .append(Character.toLowerCase(firstChar))
+                       .append(str.substring(1))
+                       .toString();
+    }
+
     private <T> T populateFields(Class<?> concreteClazz, Object instance) {
-        for (Field field : classSpy.findFields(concreteClazz, this::shouldPopulate)) {
+        // First try setter to set values
+        List<String> invokedSetter = new ArrayList<>();
+
+        for (Method setter : classSpy.findMethods(concreteClazz, methodFilter)) {
+            Type argType = setter.getGenericParameterTypes()[0];
+            String fieldName = uncapitalize(setter.getName().substring("set".length()));
+            try {
+                setter.invoke(instance, getArgValue(concreteClazz, argType, fieldName));
+                invokedSetter.add(fieldName);
+            } catch (Exception e) {
+                // make setter invoke not fail on error
+                // intentionally ignored
+            }
+        }
+
+        // Then try reflection to set values
+        for (Field field : classSpy.findFields(concreteClazz, f -> shouldPopulate(f)
+                                                                           && !invokedSetter.contains(f.getName()))) {
             boolean accessibility = field.isAccessible();
             field.setAccessible(true);
-            Provider provider = getBoundProvider(concreteClazz, field.getGenericType(), field.getName());
             try {
-                if (provider != null) {
-                    field.set(instance, provider.get(field.getGenericType()));
-                } else {
-                    field.set(instance, generate(field.getGenericType()));
-                }
+                field.set(instance, getArgValue(concreteClazz, field.getGenericType(), field.getName()));
             } catch (Exception e) {
                 throw sneakyThrow(e);
             } finally {
@@ -176,6 +213,12 @@ public class ObjectFactory {
         }
 
         return (T) instance;
+    }
+
+    private Object getArgValue(Type concreteClazz, Type argType, String fieldName) {
+        return Optional.ofNullable(getBoundProvider(concreteClazz, argType, fieldName))
+                       .map(provider -> provider.get(argType))
+                       .orElseGet(() -> generate(argType));
     }
 
     private <T> T handleInterfaceOrAbstract(Class<?> clazz) {
@@ -188,7 +231,7 @@ public class ObjectFactory {
             checkIfSupported(clazz);
             ProxyFactory factory = new ProxyFactory();
             factory.setSuperclass(clazz);
-            Object object = newInstance(factory.createClass());
+            Object object = allocateInstance(factory.createClass());
 
             ((javassist.util.proxy.Proxy) object).setHandler(new Handler(this));
 
@@ -224,7 +267,6 @@ public class ObjectFactory {
 
         final List<Object> constructorArgs = new ArrayList<>();
         for (final Type genericType : constructor.getGenericParameterTypes()) {
-            // TODO: Add bound provider support
             constructorArgs.add(generate(genericType));
         }
 

@@ -13,10 +13,8 @@ import com.amazon.df.object.util.Inspector;
 
 import lombok.Getter;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -141,24 +139,9 @@ public class ObjectFactory {
                     return (T) DEFAULT_EXPLICIT_PRIMITIVES.get(clazz);
                 }
 
-                if (clazz.isEnum()) {
-                    Object[] enums = clazz.getEnumConstants();
-                    return (T) enums[random.nextInt(enums.length)];
-                }
-
-                if (clazz.isArray()) {
-                    T array = (T) generateArray(clazz.getComponentType());
-                    return array;
-                }
-
                 T object = generateObject(clazz);
                 return object;
 
-            }
-
-            if (type instanceof GenericArrayType) {
-                T array = (T) generateArray(((GenericArrayType) type).getGenericComponentType());
-                return array;
             }
 
         } finally {
@@ -225,22 +208,6 @@ public class ObjectFactory {
         } finally {
             constructor.setAccessible(accessibility);
         }
-    }
-
-    private Object generateArray(Type component) {
-        int length = random.nextInt(maxArrayLength - minArrayLength + 1) + minArrayLength;
-
-        Object array;
-        if (component instanceof Class) {
-            array = Array.newInstance((Class<?>) component, length);
-        } else {
-            array = Array.newInstance(Object.class, length);
-        }
-
-        for (int i = 0; i < length; ++i) {
-            Array.set(array, i, generate(component));
-        }
-        return array;
     }
 
     private Class<?> resolveConcreteType(Class<?> clazz) {

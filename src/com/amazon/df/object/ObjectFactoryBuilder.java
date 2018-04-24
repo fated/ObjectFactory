@@ -3,7 +3,9 @@ package com.amazon.df.object;
 import com.amazon.df.object.binding.Binding;
 import com.amazon.df.object.cycle.CycleTerminator;
 import com.amazon.df.object.cycle.NullCycleTerminator;
+import com.amazon.df.object.provider.DefaultArrayProvider;
 import com.amazon.df.object.provider.DefaultCollectionProvider;
+import com.amazon.df.object.provider.DefaultEnumProvider;
 import com.amazon.df.object.provider.DefaultMapProvider;
 import com.amazon.df.object.provider.Provider;
 import com.amazon.df.object.provider.RandomBigNumberProvider;
@@ -65,7 +67,9 @@ public class ObjectFactoryBuilder {
                         (f, r) -> new RandomStringProvider(r),
                         (f, r) -> new RandomBufferProvider(r),
                         (f, r) -> new DefaultCollectionProvider(f, r),
-                        (f, r) -> new DefaultMapProvider(f, r)
+                        (f, r) -> new DefaultMapProvider(f, r),
+                        (f, r) -> new DefaultArrayProvider(f, r),
+                        (f, r) -> new DefaultEnumProvider(r)
                     );
 
     public static ObjectFactory getDefaultObjectFactory(Random random) {

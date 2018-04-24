@@ -21,13 +21,14 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Getter
 public class ObjectFactory {
@@ -72,37 +73,27 @@ public class ObjectFactory {
     private final CycleDetector cycleDetector = new CycleDetector();
     private final ClassSpy classSpy = new DefaultClassSpy();
 
-    private final Provider[] providers;
-    private final Resolver[] resolvers;
-    private final CycleTerminator[] terminators;
+    private final List<Provider> providers;
+    private final List<Resolver> resolvers;
+    private final List<CycleTerminator> terminators;
 
     private final Random random;
 
-    private final int minArrayLength;
-    private final int maxArrayLength;
-    private final int minCollectionLength;
-    private final int maxCollectionLength;
-    private final int minMapEntries;
-    private final int maxMapEntries;
+    private final int minSize;
+    private final int maxSize;
 
     private final boolean failOnMissingPrimitiveProvider;
 
     ObjectFactory(ObjectFactoryBuilder builder) {
-        resolvers = builder.getResolvers();
-        providers = builder.getProviders() != null
-                    ? Arrays.stream(builder.getProviders())
-                            .map(f -> f.apply(this, builder.getRandom()))
-                            .toArray(Provider[]::new)
-                    : null;
-        terminators = builder.getTerminators();
-        random = builder.getRandom();
-        minArrayLength = builder.getMinArrayLength();
-        maxArrayLength = builder.getMaxArrayLength();
-        minCollectionLength = builder.getMinCollectionLength();
-        maxCollectionLength = builder.getMaxCollectionLength();
-        minMapEntries = builder.getMinMapEntries();
-        maxMapEntries = builder.getMaxMapEntries();
-        failOnMissingPrimitiveProvider = builder.isFailOnMissingPrimitiveProvider();
+        this.resolvers = builder.getResolvers();
+        this.providers = Stream.concat(builder.getAdditionalProviders().stream(), builder.getProviders().stream())
+                               .map(f -> f.apply(this, builder.getRandom()))
+                               .collect(Collectors.toList());
+        this.terminators = builder.getTerminators();
+        this.random = builder.getRandom();
+        this.minSize = builder.getMinSize();
+        this.maxSize = builder.getMaxSize();
+        this.failOnMissingPrimitiveProvider = builder.isFailOnMissingPrimitiveProvider();
         processBindings(builder.getBindings());
     }
 
@@ -281,8 +272,8 @@ public class ObjectFactory {
         return null;
     }
 
-    private void processBindings(Binding[] bindings) {
-        if (bindings == null) {
+    private void processBindings(List<Binding> bindings) {
+        if (bindings == null || bindings.isEmpty()) {
             return;
         }
         for (Binding binding : bindings) {

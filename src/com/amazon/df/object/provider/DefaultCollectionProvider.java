@@ -18,7 +18,7 @@ import java.util.Random;
 import java.util.Set;
 
 @AllArgsConstructor
-public class DefaultCollectionProvider implements Provider {
+public class DefaultCollectionProvider implements Provider, WithRandomSize {
 
     private final ObjectFactory objectFactory;
     private final Random random;
@@ -32,7 +32,7 @@ public class DefaultCollectionProvider implements Provider {
         if (type instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) type;
             Class<?> raw = (Class<?>) parameterizedType.getRawType();
-            int length = calcLength();
+            int length = getRandomSize(objectFactory, random);
 
             Collection<?> collection = createCollection(raw, length);
 
@@ -71,11 +71,6 @@ public class DefaultCollectionProvider implements Provider {
         }
 
         return collection;
-    }
-
-    private int calcLength() {
-        return random.nextInt(objectFactory.getMaxCollectionLength() - objectFactory.getMinCollectionLength() + 1)
-                       + objectFactory.getMinCollectionLength();
     }
 
     @Override

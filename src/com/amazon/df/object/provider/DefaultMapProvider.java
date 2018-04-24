@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Random;
 
 @AllArgsConstructor
-public class DefaultMapProvider implements Provider {
+public class DefaultMapProvider implements Provider, WithRandomSize {
 
     private final ObjectFactory objectFactory;
     private final Random random;
@@ -27,7 +27,7 @@ public class DefaultMapProvider implements Provider {
         if (type instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) type;
             Class<?> raw = (Class<?>) parameterizedType.getRawType();
-            int entries = calcEntries();
+            int entries = getRandomSize(objectFactory, random);
 
             Map<?, ?> map = createMap(raw, entries);
 
@@ -63,11 +63,6 @@ public class DefaultMapProvider implements Provider {
         }
 
         return map;
-    }
-
-    private int calcEntries() {
-        return random.nextInt(objectFactory.getMaxMapEntries() - objectFactory.getMinMapEntries() + 1)
-                       + objectFactory.getMinMapEntries();
     }
 
     @Override

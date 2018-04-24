@@ -10,7 +10,7 @@ import java.lang.reflect.Type;
 import java.util.Random;
 
 @AllArgsConstructor
-public class DefaultArrayProvider implements Provider {
+public class DefaultArrayProvider implements Provider, WithRandomSize {
 
     private final ObjectFactory objectFactory;
     private final Random random;
@@ -30,7 +30,7 @@ public class DefaultArrayProvider implements Provider {
 
     private Object createArray(Type clazz) {
         Object array;
-        int length = calcLength();
+        int length = getRandomSize(objectFactory, random);
         if (clazz instanceof Class) {
             array = Array.newInstance((Class<?>) clazz, length);
         } else {
@@ -42,10 +42,6 @@ public class DefaultArrayProvider implements Provider {
         }
 
         return array;
-    }
-    private int calcLength() {
-        return random.nextInt(objectFactory.getMaxArrayLength() - objectFactory.getMinArrayLength() + 1)
-                       + objectFactory.getMinArrayLength();
     }
 
     @Override

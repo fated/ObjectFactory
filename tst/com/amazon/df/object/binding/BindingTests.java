@@ -9,6 +9,7 @@ import com.amazon.df.object.provider.Provider;
 import org.junit.Test;
 
 import java.lang.reflect.Type;
+import java.util.Random;
 
 public final class BindingTests {
 
@@ -39,6 +40,8 @@ public final class BindingTests {
                     return int.class.equals(type);
                 }
             }))
+            .providers()
+            .random(new Random())
             .build();
 
         A a = factory.generate(A.class);
@@ -64,6 +67,8 @@ public final class BindingTests {
                     return int.class.equals(type);
                 }
             }))
+            .providers()
+            .random(new Random())
             .build();
 
         A a = factory.generate(A.class);
@@ -89,6 +94,8 @@ public final class BindingTests {
                 return int.class.equals(type);
             }
         }))
+        .providers()
+        .random(new Random())
         .build();
 
         A a = factory.generate(A.class);

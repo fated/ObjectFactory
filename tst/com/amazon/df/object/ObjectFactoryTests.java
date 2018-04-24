@@ -15,6 +15,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Random;
 
 @SuppressWarnings("unused")
 public class ObjectFactoryTests {
@@ -81,10 +82,9 @@ public class ObjectFactoryTests {
     @Before
     public void setup() {
         factory = new ObjectFactoryBuilder()
-            .maxMapEntries(1)
-            .maxArrayLength(1)
-            .maxCollectionLength(1)
+            .maxSize(1)
             .providers((f,r) -> PROVIDER)
+            .random(new Random())
             .build();
     }
 

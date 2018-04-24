@@ -18,6 +18,10 @@ import com.amazon.df.object.resolver.Resolver;
 import lombok.AccessLevel;
 import lombok.Getter;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 import java.util.function.BiFunction;
 
@@ -25,104 +29,122 @@ import java.util.function.BiFunction;
 @Getter(AccessLevel.PACKAGE)
 public class ObjectFactoryBuilder {
 
-    private static final int DEFAULT_MIN_MAP_ENTRIES = 1;
-    private static final int DEFAULT_MIN_ARRAY_LENGTH = 1;
-    private static final int DEFAULT_MIN_COLLECTION_LENGTH = 1;
-    private static final int DEFAULT_MAX_MAP_ENTRIES = 10;
-    private static final int DEFAULT_MAX_ARRAY_LENGTH = 10;
-    private static final int DEFAULT_MAX_COLLECTION_LENGTH = 10;
+    private static final int DEFAULT_MIN_SIZE = 1;
+    private static final int DEFAULT_MAX_SIZE = 10;
 
     private static final boolean DEFAULT_FAIL_ON_MISSING_PRIMITIVE_PROVIDER = false;
 
-    private Binding[] bindings;
-    private BiFunction<ObjectFactory, Random, Provider>[] providers;
-    private Resolver[] resolvers;
-    private CycleTerminator[] terminators;
+    private static final List<BiFunction<ObjectFactory, Random, Provider>> DEFAULT_PROVIDERS;
+
+    static {
+        DEFAULT_PROVIDERS = Collections.unmodifiableList(Arrays.asList(
+            (f, r) -> new RandomPrimitiveProvider(r),
+            (f, r) -> new RandomBigNumberProvider(r),
+            (f, r) -> new RandomStringProvider(r),
+            (f, r) -> new RandomBufferProvider(r),
+            DefaultCollectionProvider::new,
+            DefaultMapProvider::new,
+            DefaultArrayProvider::new,
+            (f, r) -> new DefaultEnumProvider(r)
+        ));
+    }
+
+    private List<Binding> bindings;
+    private List<BiFunction<ObjectFactory, Random, Provider>> providers;
+    private List<BiFunction<ObjectFactory, Random, Provider>> additionalProviders;
+    private List<Resolver> resolvers;
+    private List<CycleTerminator> terminators;
     private Random random;
 
-    private int minArrayLength = DEFAULT_MIN_ARRAY_LENGTH;
-    private int maxArrayLength = DEFAULT_MAX_ARRAY_LENGTH;
-
-    private int minCollectionLength = DEFAULT_MIN_COLLECTION_LENGTH;
-    private int maxCollectionLength = DEFAULT_MAX_COLLECTION_LENGTH;
-
-    private int minMapEntries = DEFAULT_MIN_MAP_ENTRIES;
-    private int maxMapEntries = DEFAULT_MAX_MAP_ENTRIES;
+    private int minSize = DEFAULT_MIN_SIZE;
+    private int maxSize = DEFAULT_MAX_SIZE;
 
     private boolean failOnMissingPrimitiveProvider = DEFAULT_FAIL_ON_MISSING_PRIMITIVE_PROVIDER;
 
     private static final ObjectFactoryBuilder DEFAULT_OBJECT_FACTORY_BUILDER =
-            new ObjectFactoryBuilder()
-                    .minMapEntries(DEFAULT_MIN_MAP_ENTRIES)
-                    .maxMapEntries(DEFAULT_MAX_MAP_ENTRIES)
-                    .minArrayLength(DEFAULT_MIN_ARRAY_LENGTH)
-                    .maxArrayLength(DEFAULT_MAX_ARRAY_LENGTH)
-                    .minCollectionLength(DEFAULT_MIN_COLLECTION_LENGTH)
-                    .maxCollectionLength(DEFAULT_MAX_COLLECTION_LENGTH)
-                    .terminators(new NullCycleTerminator())
-                    .resolvers(new ClasspathResolver())
-                    .providers(
-                        (f, r) -> new RandomPrimitiveProvider(r),
-                        (f, r) -> new RandomBigNumberProvider(r),
-                        (f, r) -> new RandomStringProvider(r),
-                        (f, r) -> new RandomBufferProvider(r),
-                        (f, r) -> new DefaultCollectionProvider(f, r),
-                        (f, r) -> new DefaultMapProvider(f, r),
-                        (f, r) -> new DefaultArrayProvider(f, r),
-                        (f, r) -> new DefaultEnumProvider(r)
-                    );
+            new ObjectFactoryBuilder().minSize(DEFAULT_MIN_SIZE)
+                                      .maxSize(DEFAULT_MAX_SIZE)
+                                      .terminators(new NullCycleTerminator())
+                                      .resolvers(new ClasspathResolver());
+
+    public static ObjectFactoryBuilder getDefaultBuilder() {
+        return DEFAULT_OBJECT_FACTORY_BUILDER.copy();
+    }
 
     public static ObjectFactory getDefaultObjectFactory(Random random) {
         return DEFAULT_OBJECT_FACTORY_BUILDER.copy().random(random).build();
     }
 
+    /**
+     * Constructor to initialize inner lists.
+     */
+    public ObjectFactoryBuilder() {
+        this.bindings = new ArrayList<>();
+        this.additionalProviders = new ArrayList<>();
+        this.resolvers = new ArrayList<>();
+        this.terminators = new ArrayList<>();
+
+        this.providers = new ArrayList<>(DEFAULT_PROVIDERS);
+    }
+
     public ObjectFactoryBuilder bindings(Binding... bindings) {
-        this.bindings = bindings;
+        this.bindings.addAll(Arrays.asList(bindings));
         return this;
     }
 
+    /**
+     * Use with caution! this overwrite default providers.
+     *
+     * @param providers providers
+     * @return this builder
+     */
     public ObjectFactoryBuilder providers(BiFunction<ObjectFactory, Random, Provider>... providers) {
-        this.providers = providers;
+        this.providers = new ArrayList<>(Arrays.asList(providers));
+        return this;
+    }
+
+    public ObjectFactoryBuilder additionalProvider(BiFunction<ObjectFactory, Random, Provider>... provider) {
+        this.additionalProviders.addAll(Arrays.asList(provider));
         return this;
     }
 
     public ObjectFactoryBuilder resolvers(Resolver... resolvers) {
-        this.resolvers = resolvers;
+        this.resolvers.addAll(Arrays.asList(resolvers));
         return this;
     }
 
     public ObjectFactoryBuilder terminators(CycleTerminator... terminators) {
-        this.terminators = terminators;
+        this.terminators.addAll(Arrays.asList(terminators));
         return this;
     }
 
-    public ObjectFactoryBuilder minArrayLength(int length) {
-        minArrayLength = length;
+    /**
+     * Set the min size for generated collection, map, array, stream etc.
+     *
+     * @param minSize min size
+     * @return this builder
+     */
+    public ObjectFactoryBuilder minSize(int minSize) {
+        if (minSize < 0) {
+            throw new IllegalArgumentException("Min size must be non-negative");
+        }
+
+        this.minSize = minSize;
         return this;
     }
 
-    public ObjectFactoryBuilder maxArrayLength(int length) {
-        maxArrayLength = length;
-        return this;
-    }
+    /**
+     * Set the max size for generated collection, map, array, stream etc.
+     *
+     * @param maxSize max size
+     * @return this builder
+     */
+    public ObjectFactoryBuilder maxSize(int maxSize) {
+        if (maxSize < 0) {
+            throw new IllegalArgumentException("Max size must be non-negative");
+        }
 
-    public ObjectFactoryBuilder minCollectionLength(int length) {
-        minCollectionLength = length;
-        return this;
-    }
-
-    public ObjectFactoryBuilder maxCollectionLength(int length) {
-        maxCollectionLength = length;
-        return this;
-    }
-
-    public ObjectFactoryBuilder minMapEntries(int entries) {
-        minMapEntries = entries;
-        return this;
-    }
-
-    public ObjectFactoryBuilder maxMapEntries(int entries) {
-        maxMapEntries = entries;
+        this.maxSize = maxSize;
         return this;
     }
 
@@ -143,17 +165,14 @@ public class ObjectFactoryBuilder {
      */
     public ObjectFactoryBuilder copy() {
         ObjectFactoryBuilder b = new ObjectFactoryBuilder();
-        b.bindings = bindings;
-        b.providers = providers;
-        b.resolvers = resolvers;
-        b.terminators = terminators;
+        b.bindings = new ArrayList<>(bindings);
+        b.providers = new ArrayList<>(providers);
+        b.additionalProviders = new ArrayList<>(additionalProviders);
+        b.resolvers = new ArrayList<>(resolvers);
+        b.terminators = new ArrayList<>(terminators);
         b.random = random;
-        b.minArrayLength = minArrayLength;
-        b.maxArrayLength = maxArrayLength;
-        b.minCollectionLength = minCollectionLength;
-        b.maxCollectionLength = maxCollectionLength;
-        b.minMapEntries = minMapEntries;
-        b.maxMapEntries = maxMapEntries;
+        b.minSize = minSize;
+        b.maxSize = minSize;
         b.failOnMissingPrimitiveProvider = failOnMissingPrimitiveProvider;
 
         return b;
@@ -165,28 +184,20 @@ public class ObjectFactoryBuilder {
      * @return an instance of object factory
      */
     public ObjectFactory build() {
-        if (minArrayLength < 0) {
-            throw new IllegalArgumentException("Min array length must be non-negative");
+        if (minSize < 0) {
+            throw new IllegalArgumentException("Min size must be non-negative");
         }
 
-        if (maxArrayLength < 0) {
-            throw new IllegalArgumentException("Max array length must be non-negative");
+        if (maxSize < 0) {
+            throw new IllegalArgumentException("Max size must be non-negative");
         }
 
-        if (minCollectionLength < 0) {
-            throw new IllegalArgumentException("Min collection length must be non-negative");
+        if (maxSize < minSize) {
+            throw new IllegalArgumentException("Max size must be greater than or equal to min size");
         }
 
-        if (maxCollectionLength < 0) {
-            throw new IllegalArgumentException("Max collection length must be non-negative");
-        }
-
-        if (minMapEntries < 0) {
-            throw new IllegalArgumentException("Min map entries must be non-negative");
-        }
-
-        if (maxMapEntries < 0) {
-            throw new IllegalArgumentException("Max map entries must be non-negative");
+        if (random == null) {
+            throw new IllegalArgumentException("Random instance must not be null");
         }
 
         return new ObjectFactory(this);

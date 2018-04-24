@@ -7,8 +7,6 @@
     <property name="unit.test.minimum.coverage.branches" value="0.35"/>
     <property name="chronometer.check.failBuild" value="false"/>
 
-    <property name="jdeps.failOnError" value="false"/>
-
     <ht:import file="df-build-logic.xml" optional="false"/>
     <ht:import file="happier-trails.xml" optional="false"/>
 

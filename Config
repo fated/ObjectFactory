@@ -9,9 +9,6 @@ package.DfObjectFactory = {
     dependencies = {
         1.0 = {
             Reflections = 0.9.x;
-
-            # Spicy
-            SpicyUtil = 1.0;
         };
     };
 

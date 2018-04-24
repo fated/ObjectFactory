@@ -5,10 +5,12 @@ import com.amazon.df.object.cycle.CycleDetector;
 import com.amazon.df.object.cycle.CycleTerminator;
 import com.amazon.df.object.provider.Provider;
 import com.amazon.df.object.resolver.Resolver;
+import com.amazon.df.object.spy.ClassSpy;
+import com.amazon.df.object.spy.DefaultClassSpy;
 import com.amazon.df.object.util.Inspector;
-import com.amazon.spicy.util.TheUnsafe;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
@@ -69,6 +71,7 @@ public class ObjectFactory {
     private final Map<String, Provider> globalNameBindings = new HashMap<>();
 
     private final CycleDetector cycleDetector = new CycleDetector();
+    private final ClassSpy classSpy = new DefaultClassSpy();
 
     private final Provider[] providers;
     private final Resolver[] resolvers;
@@ -240,12 +243,7 @@ public class ObjectFactory {
             clazz = resolveConcreteType(clazz);
         }
 
-        Object instance;
-        try {
-            instance = TheUnsafe.instance.allocateInstance(clazz);
-        } catch (Exception e) {
-            throw sneakyThrow(e);
-        }
+        Object instance = allocateInstance(clazz);
 
         for (Field field : Inspector.getFields(clazz)) {
             if (!shouldPopulate(field)) {
@@ -268,6 +266,29 @@ public class ObjectFactory {
         }
 
         return (T) instance;
+    }
+
+    private Object allocateInstance(Class<?> clazz) {
+        final Constructor<?> constructor = classSpy.findConstructor(clazz);
+
+        // allow the invocation of non-public constructor
+        boolean accessibility = constructor.isAccessible();
+
+        constructor.setAccessible(true);
+
+        final List<Object> constructorArgs = new ArrayList<>();
+        for (final Type genericType : constructor.getGenericParameterTypes()) {
+            // TODO: Add bound provider support
+            constructorArgs.add(generate(genericType));
+        }
+
+        try {
+            return constructor.newInstance(constructorArgs.toArray());
+        } catch (Exception e) {
+            throw sneakyThrow(e);
+        } finally {
+            constructor.setAccessible(accessibility);
+        }
     }
 
     private Object generateArray(Type component) {
@@ -447,7 +468,7 @@ public class ObjectFactory {
     }
 
     @SuppressWarnings("unchecked")
-    private static <X extends Throwable>X unsafeCastAndRethrow(Throwable ex) throws X {
+    private static <X extends Throwable> X unsafeCastAndRethrow(Throwable ex) throws X {
         throw (X) ex;
     }
 

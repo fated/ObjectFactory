@@ -155,7 +155,6 @@ public class ObjectFactory {
 
             if (type instanceof Class) {
                 Class<?> clazz = (Class<?>) type;
-                validateClass(clazz);
                 if (Inspector.isExplicitPrimitive(clazz)) {
                     // Provider wasn't provided for this primitive
                     if (failOnMissingPrimitiveProvider) {
@@ -179,17 +178,6 @@ public class ObjectFactory {
 
             }
 
-            if (type instanceof ParameterizedType) {
-                ParameterizedType parameterizedType = (ParameterizedType) type;
-                validateParameterizedType(parameterizedType);
-                Class<?> raw = (Class<?>) parameterizedType.getRawType();
-
-                if (Map.class.isAssignableFrom(raw)) {
-                    T map = (T) generateMap(parameterizedType);
-                    return map;
-                }
-            }
-
             if (type instanceof GenericArrayType) {
                 T array = (T) generateArray(((GenericArrayType) type).getGenericComponentType());
                 return array;
@@ -198,31 +186,8 @@ public class ObjectFactory {
         } finally {
             cycleDetector.end();
         }
+
         throw new IllegalArgumentException(String.format("Unrecognized type %s", type));
-    }
-
-    private Map<?, ?> generateMap(ParameterizedType type) {
-        Map<?, ?> map;
-        int entries = random.nextInt(maxMapEntries - minMapEntries + 1) + minMapEntries;
-        Class<?> clazz = (Class<?>) type.getRawType();
-        if (Inspector.isInterface(clazz) || Inspector.isAbstract(clazz)) {
-            if (Map.class.isAssignableFrom(clazz)) {
-                map = new HashMap<>(entries);
-            } else {
-                map = newInstance(resolveConcreteType(clazz));
-            }
-        } else {
-            map = newInstance(clazz);
-        }
-
-        Type key = type.getActualTypeArguments()[0];
-        Type value = type.getActualTypeArguments()[1];
-
-        for (int i = 0; i < entries; ++i) {
-            map.put(generate(key), generate(value));
-        }
-
-        return map;
     }
 
     private <T> T generateObject(Class<?> clazz) {

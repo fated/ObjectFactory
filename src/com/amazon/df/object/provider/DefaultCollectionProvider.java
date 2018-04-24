@@ -60,6 +60,7 @@ public class DefaultCollectionProvider implements Provider {
             } else if (Queue.class.isAssignableFrom(clazz)) {
                 collection = new ArrayDeque<>(length);
             } else {
+                // TODO: add resolve concrete type
                 throw new IllegalArgumentException("Unknown type: " + clazz);
                 //collection = newInstance(resolveConcreteType(clazz));
             }

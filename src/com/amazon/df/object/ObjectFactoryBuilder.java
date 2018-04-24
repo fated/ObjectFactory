@@ -9,6 +9,7 @@ import com.amazon.df.object.provider.DefaultEnumProvider;
 import com.amazon.df.object.provider.DefaultMapProvider;
 import com.amazon.df.object.provider.DefaultOptionalProvider;
 import com.amazon.df.object.provider.DefaultStreamProvider;
+import com.amazon.df.object.provider.DefaultTypesProvider;
 import com.amazon.df.object.provider.Provider;
 import com.amazon.df.object.provider.RandomBigNumberProvider;
 import com.amazon.df.object.provider.RandomBufferProvider;
@@ -16,6 +17,8 @@ import com.amazon.df.object.provider.RandomPrimitiveProvider;
 import com.amazon.df.object.provider.RandomStringProvider;
 import com.amazon.df.object.resolver.NullResolver;
 import com.amazon.df.object.resolver.Resolver;
+import com.amazon.df.object.spy.ClassSpy;
+import com.amazon.df.object.spy.DefaultClassSpy;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -40,6 +43,7 @@ public class ObjectFactoryBuilder {
 
     static {
         DEFAULT_PROVIDERS = Collections.unmodifiableList(Arrays.asList(
+            (f, r) -> new DefaultTypesProvider(),
             (f, r) -> new RandomPrimitiveProvider(r),
             (f, r) -> new RandomBigNumberProvider(r),
             (f, r) -> new RandomStringProvider(r),
@@ -58,6 +62,7 @@ public class ObjectFactoryBuilder {
     private List<BiFunction<ObjectFactory, Random, Provider>> additionalProviders;
     private List<Resolver> resolvers;
     private List<CycleTerminator> terminators;
+    private ClassSpy classSpy;
     private Random random;
 
     private int minSize = DEFAULT_MIN_SIZE;
@@ -69,7 +74,8 @@ public class ObjectFactoryBuilder {
             new ObjectFactoryBuilder().minSize(DEFAULT_MIN_SIZE)
                                       .maxSize(DEFAULT_MAX_SIZE)
                                       .terminators(new NullCycleTerminator())
-                                      .resolvers(new NullResolver());
+                                      .resolvers(new NullResolver())
+                                      .classSpy(new DefaultClassSpy());
 
     public static ObjectFactoryBuilder getDefaultBuilder() {
         return DEFAULT_OBJECT_FACTORY_BUILDER.copy();
@@ -119,6 +125,11 @@ public class ObjectFactoryBuilder {
 
     public ObjectFactoryBuilder terminators(CycleTerminator... terminators) {
         this.terminators.addAll(Arrays.asList(terminators));
+        return this;
+    }
+
+    public ObjectFactoryBuilder classSpy(ClassSpy classSpy) {
+        this.classSpy = classSpy;
         return this;
     }
 
@@ -174,6 +185,7 @@ public class ObjectFactoryBuilder {
         b.additionalProviders = new ArrayList<>(additionalProviders);
         b.resolvers = new ArrayList<>(resolvers);
         b.terminators = new ArrayList<>(terminators);
+        b.classSpy = classSpy;
         b.random = random;
         b.minSize = minSize;
         b.maxSize = minSize;

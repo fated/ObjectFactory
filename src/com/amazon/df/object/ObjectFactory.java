@@ -9,7 +9,6 @@ import com.amazon.df.object.provider.Provider;
 import com.amazon.df.object.proxy.Handler;
 import com.amazon.df.object.resolver.Resolver;
 import com.amazon.df.object.spy.ClassSpy;
-import com.amazon.df.object.spy.DefaultClassSpy;
 import com.amazon.df.object.util.Inspector;
 
 import javassist.util.proxy.ProxyFactory;
@@ -20,8 +19,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.WildcardType;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Date;
@@ -75,7 +72,7 @@ public class ObjectFactory {
     private final Map<String, Provider> globalNameBindings = new HashMap<>();
 
     private final CycleDetector cycleDetector = new CycleDetector();
-    private final ClassSpy classSpy = new DefaultClassSpy();
+    private final ClassSpy classSpy;
 
     private final List<Provider> providers;
     private final List<Resolver> resolvers;
@@ -94,6 +91,7 @@ public class ObjectFactory {
                                .map(f -> f.apply(this, builder.getRandom()))
                                .collect(Collectors.toList());
         this.terminators = builder.getTerminators();
+        this.classSpy = builder.getClassSpy();
         this.random = builder.getRandom();
         this.minSize = builder.getMinSize();
         this.maxSize = builder.getMaxSize();
@@ -114,14 +112,12 @@ public class ObjectFactory {
         if (cycle != null) {
             return getTerminator(cycle).terminate(cycle);
         }
+
         try {
             Provider provider = getProvider(type);
+
             if (provider != null) {
                 return provider.get(type);
-            }
-
-            if (type instanceof TypeVariable || type instanceof WildcardType) {
-                return null;
             }
 
             if (type instanceof Class) {
@@ -160,35 +156,13 @@ public class ObjectFactory {
         return populateFields(concreteClazz, instance);
     }
 
-    private Predicate<Method> methodFilter =
-        method -> method.getName().startsWith("set") && method.getParameterCount() == 1;
-
-    private static String uncapitalize(final String str) {
-        if (str == null || str.length() == 0) {
-            return str;
-        }
-
-        int strLen = str.length();
-
-        final char firstChar = str.charAt(0);
-        if (Character.isLowerCase(firstChar)) {
-            // already uncapitalized
-            return str;
-        }
-
-        return new StringBuilder(strLen)
-                       .append(Character.toLowerCase(firstChar))
-                       .append(str.substring(1))
-                       .toString();
-    }
-
     private <T> T populateFields(Class<?> concreteClazz, Object instance) {
         // First try setter to set values
         List<String> invokedSetter = new ArrayList<>();
 
-        for (Method setter : classSpy.findMethods(concreteClazz, methodFilter)) {
+        for (Method setter : classSpy.findMethods(concreteClazz, classSpy.getSetterFilter())) {
             Type argType = setter.getGenericParameterTypes()[0];
-            String fieldName = uncapitalize(setter.getName().substring("set".length()));
+            String fieldName = classSpy.extractFieldNameFromSetter(setter);
             try {
                 setter.invoke(instance, getArgValue(concreteClazz, argType, fieldName));
                 invokedSetter.add(fieldName);
@@ -199,8 +173,9 @@ public class ObjectFactory {
         }
 
         // Then try reflection to set values
-        for (Field field : classSpy.findFields(concreteClazz, f -> shouldPopulate(f)
-                                                                           && !invokedSetter.contains(f.getName()))) {
+        Predicate<Field> fieldFilter = classSpy.getFieldFilter().and(f -> !invokedSetter.contains(f.getName()));
+
+        for (Field field : classSpy.findFields(concreteClazz, fieldFilter)) {
             boolean accessibility = field.isAccessible();
             field.setAccessible(true);
             try {
@@ -349,18 +324,6 @@ public class ObjectFactory {
         }
 
         return null;
-    }
-
-    private boolean shouldPopulate(Field field) {
-        return !Inspector.isVolatile(field) && !Inspector.isStatic(field) && !Inspector.isTransient(field);
-    }
-
-    private <T> T newInstance(Class<?> clazz) {
-        try {
-            return (T) clazz.newInstance();
-        } catch (Exception e) {
-            throw sneakyThrow(e);
-        }
     }
 
     private void processBindings(List<Binding> bindings) {

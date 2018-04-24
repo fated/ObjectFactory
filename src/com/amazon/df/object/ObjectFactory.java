@@ -7,7 +7,6 @@ import com.amazon.df.object.provider.Provider;
 import com.amazon.df.object.resolver.Resolver;
 import com.amazon.df.object.util.Inspector;
 import com.amazon.spicy.util.TheUnsafe;
-import com.amazon.spicy.util.Throwables;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -245,7 +244,7 @@ public class ObjectFactory {
         try {
             instance = TheUnsafe.instance.allocateInstance(clazz);
         } catch (Exception e) {
-            throw Throwables.sneakyThrow(e);
+            throw sneakyThrow(e);
         }
 
         for (Field field : Inspector.getFields(clazz)) {
@@ -263,7 +262,7 @@ public class ObjectFactory {
                     field.set(instance, generate(field.getGenericType()));
                 }
             } catch (Exception e) {
-                throw Throwables.sneakyThrow(e);
+                throw sneakyThrow(e);
             }
             field.setAccessible(accessibility);
         }
@@ -432,8 +431,24 @@ public class ObjectFactory {
         try {
             return (T) clazz.newInstance();
         } catch (Exception e) {
-            throw Throwables.sneakyThrow(e);
+            throw sneakyThrow(e);
         }
+    }
+
+    /**
+     * Google java sneaky throws.
+     * Allows you to throw a checked exception without declaring it.  Exploits a
+     * gap in the language specification when combining generics with checked exceptions.
+     * Exists solely so you don't have to artifically wrap an exception in yet another
+     * exception simply to get it past the compiler.
+     */
+    private static RuntimeException sneakyThrow(Throwable ex) {
+        return unsafeCastAndRethrow(ex);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <X extends Throwable>X unsafeCastAndRethrow(Throwable ex) throws X {
+        throw (X) ex;
     }
 
 }

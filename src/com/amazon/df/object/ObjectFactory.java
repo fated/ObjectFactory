@@ -280,35 +280,35 @@ public class ObjectFactory {
             if (binding instanceof Binding.FieldNameBinding) {
                 Binding.FieldNameBinding fieldNameBinding = (Binding.FieldNameBinding) binding;
                 Map<String, Provider> nameBindings =
-                        fieldNameBindings.getOrDefault(fieldNameBinding.type, new HashMap<>());
-                if (nameBindings.containsKey(fieldNameBinding.name)) {
+                        fieldNameBindings.getOrDefault(fieldNameBinding.getType(), new HashMap<>());
+                if (nameBindings.containsKey(fieldNameBinding.getName())) {
                     throw new IllegalArgumentException("Cannot provide multiple bindings for the same field name");
                 }
-                nameBindings.put(fieldNameBinding.name, fieldNameBinding.provider);
-                fieldNameBindings.putIfAbsent(fieldNameBinding.type, nameBindings);
+                nameBindings.put(fieldNameBinding.getName(), fieldNameBinding.getProvider());
+                fieldNameBindings.putIfAbsent(fieldNameBinding.getType(), nameBindings);
             } else if (binding instanceof Binding.FieldTypeBinding) {
                 Binding.FieldTypeBinding fieldTypeBinding = (Binding.FieldTypeBinding) binding;
                 Map<Type, Provider> typeBindings =
-                        fieldTypeBindings.getOrDefault(fieldTypeBinding.container, new HashMap<>());
-                if (typeBindings.containsKey(fieldTypeBinding.fieldType)) {
+                        fieldTypeBindings.getOrDefault(fieldTypeBinding.getContainer(), new HashMap<>());
+                if (typeBindings.containsKey(fieldTypeBinding.getFieldType())) {
                     throw new IllegalArgumentException("Cannot provide multiple bindings for the same field type");
                 }
-                typeBindings.put(fieldTypeBinding.fieldType, fieldTypeBinding.provider);
-                fieldTypeBindings.putIfAbsent(fieldTypeBinding.container, typeBindings);
+                typeBindings.put(fieldTypeBinding.getFieldType(), fieldTypeBinding.getProvider());
+                fieldTypeBindings.putIfAbsent(fieldTypeBinding.getContainer(), typeBindings);
             } else if (binding instanceof Binding.GlobalFieldTypeBinding) {
                 Binding.GlobalFieldTypeBinding globalFieldTypeBinding = (Binding.GlobalFieldTypeBinding) binding;
-                if (globalTypeBindings.containsKey(globalFieldTypeBinding.fieldType)) {
+                if (globalTypeBindings.containsKey(globalFieldTypeBinding.getFieldType())) {
                     throw new IllegalArgumentException(
                             "Cannot provide multiple global bindings for the same field type");
                 }
-                globalTypeBindings.put(globalFieldTypeBinding.fieldType, globalFieldTypeBinding.provider);
+                globalTypeBindings.put(globalFieldTypeBinding.getFieldType(), globalFieldTypeBinding.getProvider());
             } else if (binding instanceof Binding.GlobalFieldNameBinding) {
                 Binding.GlobalFieldNameBinding globalFieldNameBinding = (Binding.GlobalFieldNameBinding) binding;
-                if (globalNameBindings.containsKey(globalFieldNameBinding.fieldName)) {
+                if (globalNameBindings.containsKey(globalFieldNameBinding.getFieldName())) {
                     throw new IllegalArgumentException(
-                            "Cannot provide multiple global bindings for the same field type");
+                            "Cannot provide multiple global bindings for the same field name");
                 }
-                globalNameBindings.put(globalFieldNameBinding.fieldName, globalFieldNameBinding.provider);
+                globalNameBindings.put(globalFieldNameBinding.getFieldName(), globalFieldNameBinding.getProvider());
             } else {
                 throw new IllegalArgumentException(String.format("Unrecognized binding type %s", binding.getClass()));
             }

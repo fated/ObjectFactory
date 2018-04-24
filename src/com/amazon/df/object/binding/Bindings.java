@@ -21,4 +21,5 @@ public abstract class Bindings {
     public static Binding bind(Type type, String name, Provider provider) {
         return new Binding.FieldNameBinding(type, name, provider);
     }
+
 }

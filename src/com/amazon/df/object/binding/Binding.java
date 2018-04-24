@@ -2,16 +2,18 @@ package com.amazon.df.object.binding;
 
 import com.amazon.df.object.provider.Provider;
 
+import lombok.Getter;
+
 import java.lang.reflect.Type;
 
-@SuppressWarnings("VisibilityModifier")
 public interface Binding {
 
+    @Getter
     class FieldNameBinding implements Binding {
 
-        public final Type type;
-        public final String name;
-        public final Provider provider;
+        private final Type type;
+        private final String name;
+        private final Provider provider;
 
         FieldNameBinding(Type type, String name, Provider provider) {
             this.type = type;
@@ -20,11 +22,12 @@ public interface Binding {
         }
     }
 
+    @Getter
     class FieldTypeBinding implements Binding {
 
-        public final Type container;
-        public final Type fieldType;
-        public final Provider provider;
+        private final Type container;
+        private final Type fieldType;
+        private final Provider provider;
 
         FieldTypeBinding(Type container, Type fieldType, Provider provider) {
             this.container = container;
@@ -33,10 +36,11 @@ public interface Binding {
         }
     }
 
+    @Getter
     class GlobalFieldTypeBinding implements Binding {
 
-        public final Type fieldType;
-        public final Provider provider;
+        private final Type fieldType;
+        private final Provider provider;
 
         GlobalFieldTypeBinding(Type fieldType, Provider provider) {
             this.fieldType = fieldType;
@@ -44,14 +48,16 @@ public interface Binding {
         }
     }
 
+    @Getter
     class GlobalFieldNameBinding implements Binding {
 
-        public final String fieldName;
-        public final Provider provider;
+        private final String fieldName;
+        private final Provider provider;
 
         GlobalFieldNameBinding(String fieldName, Provider provider) {
             this.fieldName = fieldName;
             this.provider = provider;
         }
     }
+
 }

@@ -3,13 +3,7 @@ package com.amazon.df.object;
 import com.amazon.df.object.binding.Binding;
 import com.amazon.df.object.cycle.CycleDetector;
 import com.amazon.df.object.cycle.CycleTerminator;
-import com.amazon.df.object.cycle.NullCycleTerminator;
 import com.amazon.df.object.provider.Provider;
-import com.amazon.df.object.provider.RandomBigNumberProvider;
-import com.amazon.df.object.provider.RandomBufferProvider;
-import com.amazon.df.object.provider.RandomPrimitiveProvider;
-import com.amazon.df.object.provider.RandomStringProvider;
-import com.amazon.df.object.resolver.ClasspathResolver;
 import com.amazon.df.object.resolver.Resolver;
 import com.amazon.df.object.util.Inspector;
 import com.amazon.spicy.util.TheUnsafe;
@@ -35,154 +29,8 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
-import java.util.function.BiFunction;
 
 public class ObjectFactory {
-
-    public static final int DEFAULT_MIN_MAP_ENTRIES = 1;
-    public static final int DEFAULT_MIN_ARRAY_LENGTH = 1;
-    public static final int DEFAULT_MIN_COLLECTION_LENGTH = 1;
-    public static final int DEFAULT_MAX_MAP_ENTRIES = 10;
-    public static final int DEFAULT_MAX_ARRAY_LENGTH = 10;
-    public static final int DEFAULT_MAX_COLLECTION_LENGTH = 10;
-
-    public static final boolean DEFAULT_FAIL_ON_MISSING_PRIMITIVE_PROVIDER = false;
-
-    @SuppressWarnings("HiddenField")
-    public static class Builder {
-
-        private Binding[] bindings;
-        private BiFunction<ObjectFactory, Random, Provider>[] providers;
-        private Resolver[] resolvers;
-        private CycleTerminator[] terminators;
-        private Random random;
-
-        private int minArrayLength = DEFAULT_MIN_ARRAY_LENGTH;
-        private int maxArrayLength = DEFAULT_MAX_ARRAY_LENGTH;
-
-        private int minCollectionLength = DEFAULT_MIN_COLLECTION_LENGTH;
-        private int maxCollectionLength = DEFAULT_MAX_COLLECTION_LENGTH;
-
-        private int minMapEntries = DEFAULT_MIN_MAP_ENTRIES;
-        private int maxMapEntries = DEFAULT_MAX_MAP_ENTRIES;
-
-        private boolean failOnMissingPrimitiveProvider = DEFAULT_FAIL_ON_MISSING_PRIMITIVE_PROVIDER;
-
-        public Builder bindings(Binding... bindings) {
-            this.bindings = bindings;
-            return this;
-        }
-
-        public Builder providers(BiFunction<ObjectFactory, Random, Provider>... providers) {
-            this.providers = providers;
-            return this;
-        }
-
-        public Builder resolvers(Resolver... resolvers) {
-            this.resolvers = resolvers;
-            return this;
-        }
-
-        public Builder terminators(CycleTerminator... terminators) {
-            this.terminators = terminators;
-            return this;
-        }
-
-        public Builder minArrayLength(int length) {
-            minArrayLength = length;
-            return this;
-        }
-
-        public Builder maxArrayLength(int length) {
-            maxArrayLength = length;
-            return this;
-        }
-
-        public Builder minCollectionLength(int length) {
-            minCollectionLength = length;
-            return this;
-        }
-
-        public Builder maxCollectionLength(int length) {
-            maxCollectionLength = length;
-            return this;
-        }
-
-        public Builder minMapEntries(int entries) {
-            minMapEntries = entries;
-            return this;
-        }
-
-        public Builder maxMapEntries(int entries) {
-            maxMapEntries = entries;
-            return this;
-        }
-
-        public Builder failOnMissingPrimitiveProvider(boolean fail) {
-            failOnMissingPrimitiveProvider = fail;
-            return this;
-        }
-
-        public Builder random(Random random) {
-            this.random = random;
-            return this;
-        }
-
-        Builder copy() {
-            Builder b = new Builder();
-            b.bindings = bindings;
-            b.providers = providers;
-            b.resolvers = resolvers;
-            b.terminators = terminators;
-            b.random = random;
-            b.minArrayLength = minArrayLength;
-            b.maxArrayLength = maxArrayLength;
-            b.minCollectionLength = minCollectionLength;
-            b.maxCollectionLength = maxCollectionLength;
-            b.minMapEntries = minMapEntries;
-            b.maxMapEntries = maxMapEntries;
-
-            return b;
-        }
-
-        /**
-         * Build the configured object factory.
-         *
-         * @return an instance of object factory
-         */
-        public ObjectFactory build() {
-            if (maxArrayLength < 0) {
-                throw new IllegalArgumentException("Max array length must be non-negative");
-            }
-
-            if (maxCollectionLength < 0) {
-                throw new IllegalArgumentException("Max collection length must be non-negative");
-            }
-
-            if (maxMapEntries < 0) {
-                throw new IllegalArgumentException("Max map entries must be non-negative");
-            }
-
-            return new ObjectFactory(this);
-        }
-    }
-
-    private static final Builder DEFAULT_OBJECT_FACTORY_BUILDER =
-            new Builder()
-                    .minMapEntries(DEFAULT_MIN_MAP_ENTRIES)
-                    .maxMapEntries(DEFAULT_MAX_MAP_ENTRIES)
-                    .minArrayLength(DEFAULT_MIN_ARRAY_LENGTH)
-                    .maxArrayLength(DEFAULT_MAX_ARRAY_LENGTH)
-                    .minCollectionLength(DEFAULT_MIN_COLLECTION_LENGTH)
-                    .maxCollectionLength(DEFAULT_MAX_COLLECTION_LENGTH)
-                    .terminators(new NullCycleTerminator())
-                    .resolvers(new ClasspathResolver())
-                    .providers(
-                            (f, r) -> new RandomPrimitiveProvider(r),
-                            (f, r) -> new RandomBigNumberProvider(r),
-                            (f, r) -> new RandomStringProvider(r),
-                            (f, r) -> new RandomBufferProvider(r)
-                    );
 
     private static final Map<Class<?>, Object> DEFAULT_EXPLICIT_PRIMITIVES = new HashMap<>();
 
@@ -207,10 +55,6 @@ public class ObjectFactory {
         DEFAULT_EXPLICIT_PRIMITIVES.put(String.class, "");
         DEFAULT_EXPLICIT_PRIMITIVES.put(Date.class, new Date());
         DEFAULT_EXPLICIT_PRIMITIVES.put(Object.class, new Object());
-    }
-
-    public static ObjectFactory getDefaultObjectFactory(Random random) {
-        return DEFAULT_OBJECT_FACTORY_BUILDER.copy().random(random).build();
     }
 
     // type -> { field type -> provider }
@@ -242,21 +86,23 @@ public class ObjectFactory {
 
     private final boolean failOnMissingPrimitiveProvider;
 
-    private ObjectFactory(Builder builder) {
-        resolvers = builder.resolvers;
-        providers = builder.providers != null
-                    ? Arrays.stream(builder.providers).map(f -> f.apply(this, builder.random)).toArray(Provider[]::new)
+    ObjectFactory(ObjectFactoryBuilder builder) {
+        resolvers = builder.getResolvers();
+        providers = builder.getProviders() != null
+                    ? Arrays.stream(builder.getProviders())
+                            .map(f -> f.apply(this, builder.getRandom()))
+                            .toArray(Provider[]::new)
                     : null;
-        terminators = builder.terminators;
-        random = builder.random;
-        minArrayLength = builder.minArrayLength;
-        maxArrayLength = builder.maxArrayLength;
-        minCollectionLength = builder.minCollectionLength;
-        maxCollectionLength = builder.maxCollectionLength;
-        minMapEntries = builder.minMapEntries;
-        maxMapEntries = builder.maxMapEntries;
-        failOnMissingPrimitiveProvider = builder.failOnMissingPrimitiveProvider;
-        processBindings(builder.bindings);
+        terminators = builder.getTerminators();
+        random = builder.getRandom();
+        minArrayLength = builder.getMinArrayLength();
+        maxArrayLength = builder.getMaxArrayLength();
+        minCollectionLength = builder.getMinCollectionLength();
+        maxCollectionLength = builder.getMaxCollectionLength();
+        minMapEntries = builder.getMinMapEntries();
+        maxMapEntries = builder.getMaxMapEntries();
+        failOnMissingPrimitiveProvider = builder.isFailOnMissingPrimitiveProvider();
+        processBindings(builder.getBindings());
     }
 
     /**
@@ -264,7 +110,7 @@ public class ObjectFactory {
      *
      * @param type the type to create
      * @param <T> the type to create
-     * @return
+     * @return generated value
      */
     public <T> T generate(Type type) {
         CycleDetector.CycleNode cycle = cycleDetector.start(type);

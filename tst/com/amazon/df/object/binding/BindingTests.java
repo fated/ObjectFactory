@@ -1,12 +1,14 @@
 package com.amazon.df.object.binding;
 
-import java.lang.reflect.Type;
-
-import com.amazon.df.object.provider.Provider;
-import com.amazon.df.object.ObjectFactory;
-
 import static org.junit.Assert.assertEquals;
+
+import com.amazon.df.object.ObjectFactory;
+import com.amazon.df.object.ObjectFactoryBuilder;
+import com.amazon.df.object.provider.Provider;
+
 import org.junit.Test;
+
+import java.lang.reflect.Type;
 
 public final class BindingTests {
 
@@ -24,7 +26,7 @@ public final class BindingTests {
 
     @Test
     public void testGlobalBinding() {
-        ObjectFactory factory = new ObjectFactory.Builder()
+        ObjectFactory factory = new ObjectFactoryBuilder()
             .failOnMissingPrimitiveProvider(false)
             .bindings(Bindings.bind(int.class, new Provider() {
                 @Override
@@ -49,7 +51,7 @@ public final class BindingTests {
 
     @Test
     public void testFieldNameBinding() {
-        ObjectFactory factory = new ObjectFactory.Builder()
+        ObjectFactory factory = new ObjectFactoryBuilder()
             .failOnMissingPrimitiveProvider(false)
             .bindings(Bindings.bind(A.class, "aInt", new Provider() {
                 @Override
@@ -74,7 +76,7 @@ public final class BindingTests {
 
     @Test
     public void testFieldTypeBinding() {
-        ObjectFactory factory = new ObjectFactory.Builder()
+        ObjectFactory factory = new ObjectFactoryBuilder()
         .failOnMissingPrimitiveProvider(false)
         .bindings(Bindings.bind(B.class, int.class, new Provider() {
             @Override

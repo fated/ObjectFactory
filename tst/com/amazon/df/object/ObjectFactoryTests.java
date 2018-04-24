@@ -1,19 +1,20 @@
 package com.amazon.df.object;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import com.amazon.df.object.provider.DeterministicProvider;
+import com.amazon.df.object.provider.Provider;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.HashMap;
-
-import com.amazon.df.object.provider.DeterministicProvider;
-import com.amazon.df.object.provider.Provider;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import org.junit.Before;
-import org.junit.Test;
 
 @SuppressWarnings("unused")
 public class ObjectFactoryTests {
@@ -79,7 +80,7 @@ public class ObjectFactoryTests {
 
     @Before
     public void setup() {
-        factory = new ObjectFactory.Builder()
+        factory = new ObjectFactoryBuilder()
             .maxMapEntries(1)
             .maxArrayLength(1)
             .maxCollectionLength(1)

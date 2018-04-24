@@ -1,5 +1,7 @@
 package com.amazon.df.object;
 
+import static com.amazon.df.object.util.Throwables.sneakyThrow;
+
 import com.amazon.df.object.binding.Binding;
 import com.amazon.df.object.cycle.CycleDetector;
 import com.amazon.df.object.cycle.CycleTerminator;
@@ -18,18 +20,14 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.nio.ByteBuffer;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Random;
-import java.util.Set;
 
 public class ObjectFactory {
 
@@ -82,6 +80,31 @@ public class ObjectFactory {
     private final int minArrayLength;
     private final int maxArrayLength;
     private final int minCollectionLength;
+
+    public int getMinArrayLength() {
+        return minArrayLength;
+    }
+
+    public int getMaxArrayLength() {
+        return maxArrayLength;
+    }
+
+    public int getMinCollectionLength() {
+        return minCollectionLength;
+    }
+
+    public int getMaxCollectionLength() {
+        return maxCollectionLength;
+    }
+
+    public int getMinMapEntries() {
+        return minMapEntries;
+    }
+
+    public int getMaxMapEntries() {
+        return maxMapEntries;
+    }
+
     private final int maxCollectionLength;
     private final int minMapEntries;
     private final int maxMapEntries;
@@ -160,10 +183,6 @@ public class ObjectFactory {
                 ParameterizedType parameterizedType = (ParameterizedType) type;
                 validateParameterizedType(parameterizedType);
                 Class<?> raw = (Class<?>) parameterizedType.getRawType();
-                if (Collection.class.isAssignableFrom(raw)) {
-                    T collection = (T) generateCollection(parameterizedType);
-                    return collection;
-                }
 
                 if (Map.class.isAssignableFrom(raw)) {
                     T map = (T) generateMap(parameterizedType);
@@ -204,32 +223,6 @@ public class ObjectFactory {
         }
 
         return map;
-    }
-
-    private Collection<?> generateCollection(ParameterizedType type) {
-        Collection<?> collection;
-        int length = random.nextInt(maxCollectionLength - minCollectionLength + 1) + minCollectionLength;
-        Class<?> clazz = (Class<?>) type.getRawType();
-        if (Inspector.isInterface(clazz) || Inspector.isAbstract(clazz)) {
-            if (Set.class.isAssignableFrom(clazz)) {
-                collection = new HashSet<>(length);
-            } else if (List.class.isAssignableFrom(clazz)) {
-                collection = new ArrayList<>(length);
-            } else if (Queue.class.isAssignableFrom(clazz)) {
-                collection = new ArrayDeque<>(length);
-            } else {
-                collection = newInstance(resolveConcreteType(clazz));
-            }
-        } else {
-            collection = newInstance(clazz);
-        }
-
-        Type component = type.getActualTypeArguments()[0];
-        for (int i = 0; i < length; ++i) {
-            collection.add(generate(component));
-        }
-
-        return collection;
     }
 
     private <T> T generateObject(Class<?> clazz) {
@@ -454,22 +447,6 @@ public class ObjectFactory {
         } catch (Exception e) {
             throw sneakyThrow(e);
         }
-    }
-
-    /**
-     * Google java sneaky throws.
-     * Allows you to throw a checked exception without declaring it.  Exploits a
-     * gap in the language specification when combining generics with checked exceptions.
-     * Exists solely so you don't have to artifically wrap an exception in yet another
-     * exception simply to get it past the compiler.
-     */
-    private static RuntimeException sneakyThrow(Throwable ex) {
-        return unsafeCastAndRethrow(ex);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <X extends Throwable> X unsafeCastAndRethrow(Throwable ex) throws X {
-        throw (X) ex;
     }
 
 }

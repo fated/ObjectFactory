@@ -6,22 +6,23 @@ import com.amazon.df.object.binding.Binding;
 import com.amazon.df.object.cycle.CycleDetector;
 import com.amazon.df.object.cycle.CycleTerminator;
 import com.amazon.df.object.provider.Provider;
+import com.amazon.df.object.proxy.Handler;
 import com.amazon.df.object.resolver.Resolver;
 import com.amazon.df.object.spy.ClassSpy;
 import com.amazon.df.object.spy.DefaultClassSpy;
 import com.amazon.df.object.util.Inspector;
 
+import javassist.util.proxy.ProxyFactory;
 import lombok.Getter;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -149,20 +150,25 @@ public class ObjectFactory {
                                                        + "your object factory with an appropriate Envelope provider");
         }
 
+        Class<?> concreteClazz = clazz;
         if (Inspector.isInterface(clazz) || Inspector.isAbstract(clazz)) {
-            clazz = resolveConcreteType(clazz);
+            concreteClazz = resolveConcreteType(clazz);
+
+            if (concreteClazz == null) {
+                return handleInterfaceOrAbstract(clazz);
+            }
         }
 
-        Object instance = allocateInstance(clazz);
+        Object instance = allocateInstance(concreteClazz);
 
-        for (Field field : Inspector.getFields(clazz)) {
+        for (Field field : Inspector.getFields(concreteClazz)) {
             if (!shouldPopulate(field)) {
                 continue;
             }
 
             boolean accessibility = field.isAccessible();
             field.setAccessible(true);
-            Provider provider = getBoundProvider(clazz, field.getGenericType(), field.getName());
+            Provider provider = getBoundProvider(concreteClazz, field.getGenericType(), field.getName());
             try {
                 if (provider != null) {
                     field.set(instance, provider.get(field.getGenericType()));
@@ -176,6 +182,41 @@ public class ObjectFactory {
         }
 
         return (T) instance;
+    }
+
+    private <T> T handleInterfaceOrAbstract(Class<?> clazz) {
+        if (Inspector.isInterface(clazz)) {
+            return (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class[] {clazz}, new Handler(this));
+        }
+
+        if (Inspector.isAbstract(clazz)) {
+            checkIfSupported(clazz);
+            ProxyFactory factory = new ProxyFactory();
+            factory.setSuperclass(clazz);
+            Object object = newInstance(factory.createClass());
+
+            ((javassist.util.proxy.Proxy) object).setHandler(new Handler(this));
+
+            return (T) object;
+        }
+
+        throw new IllegalStateException("Unable to create proxy for " + clazz);
+    }
+
+    /**
+     * Checks if the abstract class is supported.
+     * Currently only supports abstract class with no argument constructor.
+     *
+     * @param clazz the class to check.
+     * @throws IllegalStateException if the class is not supported.
+     */
+    private void checkIfSupported(final Class clazz) {
+        assert clazz != null : "clazz cannot be null";
+
+        final Constructor constructor = classSpy.findConstructor(clazz);
+        if (constructor.getParameterCount() != 0) {
+            throw new IllegalStateException(clazz + " doesn't have constructor with no arguments");
+        }
     }
 
     private Object allocateInstance(Class<?> clazz) {
@@ -212,7 +253,8 @@ public class ObjectFactory {
                 return resolved;
             }
         }
-        throw new IllegalStateException(String.format("Unable to resolve %s to concrete type", clazz));
+
+        return null;
     }
 
     private CycleTerminator getTerminator(CycleDetector.CycleNode cycle) {
@@ -317,29 +359,6 @@ public class ObjectFactory {
 
     private boolean shouldPopulate(Field field) {
         return !Inspector.isVolatile(field) && !Inspector.isStatic(field) && !Inspector.isTransient(field);
-    }
-
-    private void validateParameterizedType(ParameterizedType parameterizedType) {
-        Type raw = parameterizedType.getRawType();
-        if (!(raw instanceof Class)) {
-            throw new UnsupportedOperationException("Non-class raw types are not supported for parameterized types");
-        }
-
-        if (!Collection.class.isAssignableFrom((Class<?>) raw)
-                    && !Map.class.isAssignableFrom((Class<?>) raw)) {
-            throw new IllegalArgumentException(String.format("Unrecognized parameterized type %s",
-                                                             parameterizedType));
-        }
-    }
-
-    private void validateClass(Class<?> clazz) {
-        if (Collection.class.isAssignableFrom(clazz)) {
-            throw new UnsupportedOperationException("Raw collection types are not supported");
-        }
-
-        if (Map.class.isAssignableFrom(clazz)) {
-            throw new UnsupportedOperationException("Raw map types are not supported");
-        }
     }
 
     private <T> T newInstance(Class<?> clazz) {

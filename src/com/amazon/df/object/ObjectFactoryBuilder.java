@@ -14,7 +14,7 @@ import com.amazon.df.object.provider.RandomBigNumberProvider;
 import com.amazon.df.object.provider.RandomBufferProvider;
 import com.amazon.df.object.provider.RandomPrimitiveProvider;
 import com.amazon.df.object.provider.RandomStringProvider;
-import com.amazon.df.object.resolver.ClasspathResolver;
+import com.amazon.df.object.resolver.NullResolver;
 import com.amazon.df.object.resolver.Resolver;
 
 import lombok.AccessLevel;
@@ -69,7 +69,7 @@ public class ObjectFactoryBuilder {
             new ObjectFactoryBuilder().minSize(DEFAULT_MIN_SIZE)
                                       .maxSize(DEFAULT_MAX_SIZE)
                                       .terminators(new NullCycleTerminator())
-                                      .resolvers(new ClasspathResolver());
+                                      .resolvers(new NullResolver());
 
     public static ObjectFactoryBuilder getDefaultBuilder() {
         return DEFAULT_OBJECT_FACTORY_BUILDER.copy();

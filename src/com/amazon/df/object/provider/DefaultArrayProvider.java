@@ -16,6 +16,7 @@ public class DefaultArrayProvider implements Provider, WithRandomSize {
     private final Random random;
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T get(Type type) {
         if (type instanceof Class) {
             return (T) createArray(((Class<?>) type).getComponentType());

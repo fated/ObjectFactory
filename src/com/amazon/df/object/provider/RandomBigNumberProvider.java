@@ -1,5 +1,7 @@
 package com.amazon.df.object.provider;
 
+import lombok.AllArgsConstructor;
+
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -8,6 +10,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.function.Function;
 
+@AllArgsConstructor
 public class RandomBigNumberProvider implements Provider {
 
     private static final int MAXIMUM_BIT_LENGTH = 64;
@@ -33,11 +36,8 @@ public class RandomBigNumberProvider implements Provider {
 
     private final Random random;
 
-    public RandomBigNumberProvider(Random random) {
-        this.random = random;
-    }
-
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T get(Type type) {
         return (T) FUNCTIONS.get(type).apply(random);
     }

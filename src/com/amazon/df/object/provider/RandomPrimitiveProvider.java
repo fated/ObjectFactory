@@ -1,11 +1,14 @@
 package com.amazon.df.object.provider;
 
+import lombok.AllArgsConstructor;
+
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.function.Function;
 
+@AllArgsConstructor
 public class RandomPrimitiveProvider implements Provider {
 
     private static final int PRINTABLE_ASCII_CHAR_SIZE = 95;
@@ -34,11 +37,8 @@ public class RandomPrimitiveProvider implements Provider {
 
     private final Random random;
 
-    public RandomPrimitiveProvider(Random random) {
-        this.random = random;
-    }
-
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T get(Type type) {
         return (T) FUNCTIONS.get(type).apply(random);
     }

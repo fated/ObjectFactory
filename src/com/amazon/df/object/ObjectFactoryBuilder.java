@@ -13,6 +13,7 @@ import com.amazon.df.object.provider.DefaultTypesProvider;
 import com.amazon.df.object.provider.Provider;
 import com.amazon.df.object.provider.RandomBigNumberProvider;
 import com.amazon.df.object.provider.RandomBufferProvider;
+import com.amazon.df.object.provider.RandomDateProvider;
 import com.amazon.df.object.provider.RandomPrimitiveProvider;
 import com.amazon.df.object.provider.RandomStringProvider;
 import com.amazon.df.object.resolver.NullResolver;
@@ -46,6 +47,7 @@ public class ObjectFactoryBuilder {
             (f, r) -> new DefaultTypesProvider(),
             (f, r) -> new RandomPrimitiveProvider(r),
             (f, r) -> new RandomBigNumberProvider(r),
+            (f, r) -> new RandomDateProvider(r),
             (f, r) -> new RandomStringProvider(r),
             (f, r) -> new RandomBufferProvider(r),
             (f, r) -> new DefaultEnumProvider(r),
@@ -88,7 +90,7 @@ public class ObjectFactoryBuilder {
     /**
      * Constructor to initialize inner lists.
      */
-    public ObjectFactoryBuilder() {
+    private ObjectFactoryBuilder() {
         this.bindings = new ArrayList<>();
         this.additionalProviders = new ArrayList<>();
         this.resolvers = new ArrayList<>();

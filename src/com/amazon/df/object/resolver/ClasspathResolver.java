@@ -8,6 +8,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -19,9 +20,12 @@ import java.util.Vector;
 
 public class ClasspathResolver implements Resolver {
 
-    private static final List<Class<? extends Collection>> COLLECTIONS = Arrays.asList(
-            ArrayList.class, LinkedList.class, Vector.class,
-            HashSet.class, LinkedHashSet.class);
+    private static final List<Class<? extends Collection>> COLLECTIONS =
+            Collections.unmodifiableList(Arrays.asList(ArrayList.class,
+                                                       LinkedList.class,
+                                                       Vector.class,
+                                                       HashSet.class,
+                                                       LinkedHashSet.class));
 
     private final Reflections reflections;
 

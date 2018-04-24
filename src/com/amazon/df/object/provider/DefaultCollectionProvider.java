@@ -24,6 +24,7 @@ public class DefaultCollectionProvider implements Provider, WithRandomSize {
     private final Random random;
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T get(Type type) {
         if (type instanceof Class) {
             return (T) createCollection((Class<Collection>) type, 0);

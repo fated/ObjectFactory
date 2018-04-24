@@ -19,6 +19,7 @@ public class DefaultMapProvider implements Provider, WithRandomSize {
     private final Random random;
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T get(Type type) {
         if (type instanceof Class) {
             return (T) createMap((Class<Map>) type, 0);

@@ -13,17 +13,35 @@ import java.util.function.Predicate;
  */
 public interface ClassSpy {
 
+    /**
+     * Default setter prefix, {@code setXXX}.
+     */
     String DEFAULT_SETTER_PREFIX = "set";
 
+    /**
+     * Get setter prefix.
+     *
+     * @return setter prefix
+     */
     default String getSetterPrefix() {
         return DEFAULT_SETTER_PREFIX;
     }
 
+    /**
+     * Get setter filter, used to filter setters to invoke.
+     *
+     * @return a field filter
+     */
     default Predicate<Method> getSetterFilter() {
-        return method -> method.getName().startsWith(getSetterPrefix())
-                                 && method.getParameterCount() == 1;
+        return method -> method.getName().startsWith(getSetterPrefix()) && method.getParameterCount() == 1;
     }
 
+    /**
+     * Extract field name from setter name.
+     *
+     * @param setter setter method
+     * @return extracted field name from setter
+     */
     default String extractFieldNameFromSetter(Method setter) {
         String capitalizedFieldName = setter.getName().substring(getSetterPrefix().length());
 
@@ -40,6 +58,11 @@ public interface ClassSpy {
         return Character.toLowerCase(firstChar) + capitalizedFieldName.substring(1);
     }
 
+    /**
+     * Get field filter, used to filter fields to set.
+     *
+     * @return a field filter
+     */
     default Predicate<Field> getFieldFilter() {
         return field -> !Inspector.isVolatile(field) && !Inspector.isStatic(field) && !Inspector.isTransient(field);
     }

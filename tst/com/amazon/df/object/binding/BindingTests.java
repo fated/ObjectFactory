@@ -27,8 +27,7 @@ public final class BindingTests {
 
     @Test
     public void testGlobalBinding() {
-        ObjectFactory factory = new ObjectFactoryBuilder()
-            .failOnMissingPrimitiveProvider(false)
+        ObjectFactory factory = ObjectFactoryBuilder.getDefaultBuilder()
             .bindings(Bindings.bind(int.class, new Provider() {
                 @Override
                 public <T> T get(Type type) {
@@ -54,8 +53,7 @@ public final class BindingTests {
 
     @Test
     public void testFieldNameBinding() {
-        ObjectFactory factory = new ObjectFactoryBuilder()
-            .failOnMissingPrimitiveProvider(false)
+        ObjectFactory factory = ObjectFactoryBuilder.getDefaultBuilder()
             .bindings(Bindings.bind(A.class, "aInt", new Provider() {
                 @Override
                 public <T> T get(Type type) {
@@ -81,8 +79,7 @@ public final class BindingTests {
 
     @Test
     public void testFieldTypeBinding() {
-        ObjectFactory factory = new ObjectFactoryBuilder()
-        .failOnMissingPrimitiveProvider(false)
+        ObjectFactory factory = ObjectFactoryBuilder.getDefaultBuilder()
         .bindings(Bindings.bind(B.class, int.class, new Provider() {
             @Override
             public <T> T get(Type type) {
@@ -105,4 +102,5 @@ public final class BindingTests {
         assertEquals(2, a.b.aInt);
         assertEquals(2, a.b.bInt);
     }
+
 }

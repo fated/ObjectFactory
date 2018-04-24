@@ -11,6 +11,7 @@ public class DefaultEnumProvider implements Provider {
     private final Random random;
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T get(Type type) {
         Class<?> clazz = (Class<?>) type;
 

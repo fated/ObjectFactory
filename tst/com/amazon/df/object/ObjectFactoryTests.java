@@ -81,7 +81,7 @@ public class ObjectFactoryTests {
 
     @Before
     public void setup() {
-        factory = new ObjectFactoryBuilder()
+        factory = ObjectFactoryBuilder.getDefaultBuilder()
             .maxSize(1)
             .providers((f,r) -> PROVIDER)
             .random(new Random())

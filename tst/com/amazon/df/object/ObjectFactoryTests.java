@@ -1,13 +1,13 @@
 package com.amazon.df.object;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.amazon.df.object.provider.DeterministicProvider;
 import com.amazon.df.object.provider.Provider;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Random;
 
 @SuppressWarnings("unused")
-public class ObjectFactoryTests {
+class ObjectFactoryTests {
 
     private static final double EPSILON = 1E-9;
     private static final Provider PROVIDER = new DeterministicProvider(new HashMap<Type, Object>() {{
@@ -46,6 +46,7 @@ public class ObjectFactoryTests {
     }});
 
     private static final class PrimitiveStruct {
+
         private boolean aBoolean;
         private byte aByte;
         private char aChar;
@@ -77,19 +78,19 @@ public class ObjectFactoryTests {
         // TODO
     }
 
-    private ObjectFactory factory;
+    private static ObjectFactory factory;
 
-    @Before
-    public void setup() {
+    @BeforeAll
+    static void setup() {
         factory = ObjectFactoryBuilder.getDefaultBuilder()
-            .maxSize(1)
-            .providers((f,r) -> PROVIDER)
-            .random(new Random())
-            .build();
+                                      .maxSize(1)
+                                      .providers((f, r) -> PROVIDER)
+                                      .random(new Random())
+                                      .build();
     }
 
     @Test
-    public void testPrimitiveStructGeneration() {
+    void testPrimitiveStructGeneration() {
         PrimitiveStruct s = factory.generate(PrimitiveStruct.class);
         validatePrimitiveStruct(s);
     }

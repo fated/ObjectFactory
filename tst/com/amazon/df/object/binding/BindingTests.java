@@ -1,17 +1,17 @@
 package com.amazon.df.object.binding;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.amazon.df.object.ObjectFactory;
 import com.amazon.df.object.ObjectFactoryBuilder;
 import com.amazon.df.object.provider.Provider;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Type;
 import java.util.Random;
 
-public final class BindingTests {
+final class BindingTests {
 
     private static final class A {
         private int aInt;
@@ -26,7 +26,7 @@ public final class BindingTests {
     }
 
     @Test
-    public void testGlobalBinding() {
+    void testGlobalBinding() {
         ObjectFactory factory = ObjectFactoryBuilder.getDefaultBuilder()
             .bindings(Bindings.bind(int.class, new Provider() {
                 @Override
@@ -52,7 +52,7 @@ public final class BindingTests {
     }
 
     @Test
-    public void testFieldNameBinding() {
+    void testFieldNameBinding() {
         ObjectFactory factory = ObjectFactoryBuilder.getDefaultBuilder()
             .bindings(Bindings.bind(A.class, "aInt", new Provider() {
                 @Override
@@ -78,7 +78,7 @@ public final class BindingTests {
     }
 
     @Test
-    public void testFieldTypeBinding() {
+    void testFieldTypeBinding() {
         ObjectFactory factory = ObjectFactoryBuilder.getDefaultBuilder()
         .bindings(Bindings.bind(B.class, int.class, new Provider() {
             @Override

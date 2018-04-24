@@ -131,26 +131,19 @@ public class ObjectFactory {
                     return (T) DEFAULT_EXPLICIT_PRIMITIVES.get(clazz);
                 }
 
-                T object = generateObject(clazz);
-                return object;
-
+                return generateObject(clazz);
             }
 
         } finally {
             cycleDetector.end();
         }
 
-        throw new IllegalArgumentException(String.format("Unrecognized type %s", type));
+        throw new IllegalArgumentException("Unrecognized type " + type);
     }
 
     private <T> T generateObject(Class<?> clazz) {
-        if ("com.amazon.coral.Envelope".equals(clazz.getName())) {
-            throw new IllegalArgumentException("Ouch! Looks like you're trying to generate a Coral Envelope."
-                                                       + " This isn't implicitly supported, initialize "
-                                                       + "your object factory with an appropriate Envelope provider");
-        }
-
         Class<?> concreteClazz = clazz;
+
         if (Inspector.isInterface(clazz) || Inspector.isAbstract(clazz)) {
             concreteClazz = resolveConcreteType(clazz);
 
@@ -161,11 +154,11 @@ public class ObjectFactory {
 
         Object instance = allocateInstance(concreteClazz);
 
-        for (Field field : Inspector.getFields(concreteClazz)) {
-            if (!shouldPopulate(field)) {
-                continue;
-            }
+        return populateFields(concreteClazz, instance);
+    }
 
+    private <T> T populateFields(Class<?> concreteClazz, Object instance) {
+        for (Field field : classSpy.findFields(concreteClazz, this::shouldPopulate)) {
             boolean accessibility = field.isAccessible();
             field.setAccessible(true);
             Provider provider = getBoundProvider(concreteClazz, field.getGenericType(), field.getName());
@@ -177,8 +170,9 @@ public class ObjectFactory {
                 }
             } catch (Exception e) {
                 throw sneakyThrow(e);
+            } finally {
+                field.setAccessible(accessibility);
             }
-            field.setAccessible(accessibility);
         }
 
         return (T) instance;
@@ -190,6 +184,7 @@ public class ObjectFactory {
         }
 
         if (Inspector.isAbstract(clazz)) {
+            // Alternative solution is to use CGLib's Enhancer
             checkIfSupported(clazz);
             ProxyFactory factory = new ProxyFactory();
             factory.setSuperclass(clazz);
@@ -314,6 +309,18 @@ public class ObjectFactory {
         return null;
     }
 
+    private boolean shouldPopulate(Field field) {
+        return !Inspector.isVolatile(field) && !Inspector.isStatic(field) && !Inspector.isTransient(field);
+    }
+
+    private <T> T newInstance(Class<?> clazz) {
+        try {
+            return (T) clazz.newInstance();
+        } catch (Exception e) {
+            throw sneakyThrow(e);
+        }
+    }
+
     private void processBindings(List<Binding> bindings) {
         if (bindings == null || bindings.isEmpty()) {
             return;
@@ -354,18 +361,6 @@ public class ObjectFactory {
             } else {
                 throw new IllegalArgumentException(String.format("Unrecognized binding type %s", binding.getClass()));
             }
-        }
-    }
-
-    private boolean shouldPopulate(Field field) {
-        return !Inspector.isVolatile(field) && !Inspector.isStatic(field) && !Inspector.isTransient(field);
-    }
-
-    private <T> T newInstance(Class<?> clazz) {
-        try {
-            return (T) clazz.newInstance();
-        } catch (Exception e) {
-            throw sneakyThrow(e);
         }
     }
 

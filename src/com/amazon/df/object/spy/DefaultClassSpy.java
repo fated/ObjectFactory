@@ -1,12 +1,14 @@
 package com.amazon.df.object.spy;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import com.google.common.collect.Lists;
-
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Default implementation of {@link ClassSpy}.
@@ -18,38 +20,33 @@ public final class DefaultClassSpy implements ClassSpy {
      *
      * {@inheritDoc}.
      */
-    @SuppressWarnings("unchecked")
     @Override
+    @SuppressWarnings("unchecked")
     public <T> Constructor<T> findConstructor(final Class<T> clazz) {
-        checkNotNull(clazz, "clazz cannot be null");
-
-        int minNumberOfParameter = Integer.MAX_VALUE;
-        Constructor<T> result = null;
-        for (final Constructor<?> constructor : clazz.getDeclaredConstructors()) {
-            if (constructor.getParameterTypes().length < minNumberOfParameter) {
-                minNumberOfParameter = constructor.getParameterTypes().length;
-                result = (Constructor<T>) constructor;
-            }
-        }
-
-        return result;
+        return (Constructor<T>) Arrays.stream(clazz.getDeclaredConstructors())
+                                      .min(Comparator.comparingInt(c -> c.getParameterTypes().length))
+                                      .orElse(null);
     }
 
     @Override
-    public <T> List<Method> findMethods(final Class<T> clazz, final String namePrefix) {
-        checkNotNull(clazz, "clazz cannot be null");
-        checkNotNull(namePrefix, "namePrefix cannot be null");
-
+    public List<Method> findMethods(final Class<?> clazz, final Predicate<Method> methodFilter) {
         // Gets inherited methods too
-        final Method[] methods = clazz.getMethods();
-        final List<Method> methodsWithPrefix = Lists.newArrayList();
-        for (final Method method : methods) {
-            if (method.getName().startsWith(namePrefix)) {
-                methodsWithPrefix.add(method);
-            }
+        // method.getName().startsWith(namePrefix)
+        return Arrays.stream(clazz.getMethods())
+                     .filter(methodFilter)
+                     .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Field> findFields(Class<?> clazz, Predicate<Field> fieldFilter) {
+        Class<?> curClazz = clazz;
+        List<Field> fields = new ArrayList<>();
+        while (clazz != Object.class) {
+            fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+            curClazz = curClazz.getSuperclass();
         }
 
-        return methodsWithPrefix;
+        return fields.stream().filter(fieldFilter).collect(Collectors.toList());
     }
 
 }

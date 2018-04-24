@@ -1,20 +1,20 @@
 package com.amazon.df.object.util;
 
-import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-public abstract class Inspector {
+public final class Inspector {
 
-    private static final Set<Class<?>> EXPLICIT_PRIMITIVES = new HashSet<Class<?>>();
+    private Inspector() {}
+
+    private static final Set<Class<?>> EXPLICIT_PRIMITIVES = new HashSet<>();
 
     static {
         EXPLICIT_PRIMITIVES.addAll(Arrays.asList(boolean.class, Boolean.class,
@@ -46,35 +46,20 @@ public abstract class Inspector {
         return Modifier.isInterface(clazz.getModifiers());
     }
 
-    public static boolean isStatic(Field field) {
-        return Modifier.isStatic(field.getModifiers());
+    public static boolean isStatic(Member member) {
+        return Modifier.isStatic(member.getModifiers());
     }
 
-    public static boolean isTransient(Field field) {
-        return Modifier.isTransient(field.getModifiers());
+    public static boolean isTransient(Member member) {
+        return Modifier.isTransient(member.getModifiers());
     }
 
-    public static boolean isVolatile(Field field) {
-        return Modifier.isVolatile(field.getModifiers());
+    public static boolean isVolatile(Member member) {
+        return Modifier.isVolatile(member.getModifiers());
     }
 
-    public static boolean isFinal(Field field) {
-        return Modifier.isFinal(field.getModifiers());
-    }
-
-    /**
-     * Get all fields of a class, including fields defined in super class.
-     *
-     * @param clazz class to find
-     * @return all fields found
-     */
-    public static List<Field> getFields(Class<?> clazz) {
-        List<Field> fields = new ArrayList<>();
-        while (clazz != Object.class) {
-            fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
-            clazz = clazz.getSuperclass();
-        }
-        return fields;
+    public static boolean isFinal(Member member) {
+        return Modifier.isFinal(member.getModifiers());
     }
 
 }

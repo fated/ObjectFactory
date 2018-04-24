@@ -1,8 +1,10 @@
 package com.amazon.df.object.spy;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Finds the constructor and methods for class.
@@ -16,19 +18,25 @@ public interface ClassSpy {
      * @param clazz the class to check.
      * @param <T> a type of the class.
      * @return the constructor.
-     * @throws NullPointerException if any argument is <code>null</code>.
      */
     <T> Constructor<T> findConstructor(Class<T> clazz);
 
     /**
-     * Finds all methods in the class, by the prefix of the method name.
+     * Finds all methods in the class, that satisfy the methodFilter.
      *
      * @param clazz the class to check.
-     * @param <T> the type of the class.
-     * @param namePrefix the prefix of the method name.
+     * @param methodFilter method filter for the methods
      * @return the methods.
-     * @throws NullPointerException if any argument is <code>null</code>.
      */
-    <T> List<Method> findMethods(Class<T> clazz, String namePrefix);
+    List<Method> findMethods(Class<?> clazz, Predicate<Method> methodFilter);
+
+    /**
+     * Finds all fields in the class, that satisfy the fieldFilter.
+     *
+     * @param clazz the class to check.
+     * @param fieldFilter field filter for the fields
+     * @return the fields.
+     */
+    List<Field> findFields(Class<?> clazz, Predicate<Field> fieldFilter);
 
 }

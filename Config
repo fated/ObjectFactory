@@ -19,7 +19,13 @@ package.DfObjectFactory = {
 
     test-dependencies = {
         1.0 = {
-            junit = 4.12;
+            JUnit5 = 5.x;
+            JUnit-4-12-migration = 5.x;
+
+            Mockito = 2.x;
+
+            # Type builder
+            Arsenal-reflect = 1.0;
         };
     };
 

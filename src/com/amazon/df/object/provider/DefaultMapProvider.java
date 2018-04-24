@@ -4,21 +4,19 @@ import com.amazon.df.object.ObjectFactory;
 import com.amazon.df.object.util.Inspector;
 import com.amazon.df.object.util.Throwables;
 
+import lombok.AllArgsConstructor;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+@AllArgsConstructor
 public class DefaultMapProvider implements Provider {
 
     private final ObjectFactory objectFactory;
     private final Random random;
-
-    public DefaultMapProvider(final ObjectFactory objectFactory, final Random random) {
-        this.objectFactory = objectFactory;
-        this.random = random;
-    }
 
     @Override
     public <T> T get(Type type) {

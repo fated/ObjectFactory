@@ -13,10 +13,14 @@ import com.amazon.df.object.provider.RandomStringProvider;
 import com.amazon.df.object.resolver.ClasspathResolver;
 import com.amazon.df.object.resolver.Resolver;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+
 import java.util.Random;
 import java.util.function.BiFunction;
 
 @SuppressWarnings("HiddenField")
+@Getter(AccessLevel.PACKAGE)
 public class ObjectFactoryBuilder {
 
     private static final int DEFAULT_MIN_MAP_ENTRIES = 1;
@@ -126,58 +130,6 @@ public class ObjectFactoryBuilder {
     public ObjectFactoryBuilder random(Random random) {
         this.random = random;
         return this;
-    }
-
-    /*
-     * Internal Getters
-     */
-
-    Binding[] getBindings() {
-        return bindings;
-    }
-
-    BiFunction<ObjectFactory, Random, Provider>[] getProviders() {
-        return providers;
-    }
-
-    Resolver[] getResolvers() {
-        return resolvers;
-    }
-
-    CycleTerminator[] getTerminators() {
-        return terminators;
-    }
-
-    Random getRandom() {
-        return random;
-    }
-
-    int getMinArrayLength() {
-        return minArrayLength;
-    }
-
-    int getMaxArrayLength() {
-        return maxArrayLength;
-    }
-
-    int getMinCollectionLength() {
-        return minCollectionLength;
-    }
-
-    int getMaxCollectionLength() {
-        return maxCollectionLength;
-    }
-
-    int getMinMapEntries() {
-        return minMapEntries;
-    }
-
-    int getMaxMapEntries() {
-        return maxMapEntries;
-    }
-
-    boolean isFailOnMissingPrimitiveProvider() {
-        return failOnMissingPrimitiveProvider;
     }
 
     /**

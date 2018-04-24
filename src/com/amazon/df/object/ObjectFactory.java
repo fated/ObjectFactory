@@ -11,6 +11,8 @@ import com.amazon.df.object.spy.ClassSpy;
 import com.amazon.df.object.spy.DefaultClassSpy;
 import com.amazon.df.object.util.Inspector;
 
+import lombok.Getter;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -29,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+@Getter
 public class ObjectFactory {
 
     private static final Map<Class<?>, Object> DEFAULT_EXPLICIT_PRIMITIVES = new HashMap<>();
@@ -80,31 +83,6 @@ public class ObjectFactory {
     private final int minArrayLength;
     private final int maxArrayLength;
     private final int minCollectionLength;
-
-    public int getMinArrayLength() {
-        return minArrayLength;
-    }
-
-    public int getMaxArrayLength() {
-        return maxArrayLength;
-    }
-
-    public int getMinCollectionLength() {
-        return minCollectionLength;
-    }
-
-    public int getMaxCollectionLength() {
-        return maxCollectionLength;
-    }
-
-    public int getMinMapEntries() {
-        return minMapEntries;
-    }
-
-    public int getMaxMapEntries() {
-        return maxMapEntries;
-    }
-
     private final int maxCollectionLength;
     private final int minMapEntries;
     private final int maxMapEntries;

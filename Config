@@ -37,6 +37,10 @@ package.DfObjectFactory = {
 
             # Team build logic
             DFJavaAntBuildLogic = 1.1;
+
+            # Lombok support
+            Lombok = 1.16.x;
+            LombokUtils = 1.1;
         };
     };
 

@@ -4,6 +4,8 @@ import com.amazon.df.object.ObjectFactory;
 import com.amazon.df.object.util.Inspector;
 import com.amazon.df.object.util.Throwables;
 
+import lombok.AllArgsConstructor;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayDeque;
@@ -15,15 +17,11 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 
+@AllArgsConstructor
 public class DefaultCollectionProvider implements Provider {
 
     private final ObjectFactory objectFactory;
     private final Random random;
-
-    public DefaultCollectionProvider(final ObjectFactory objectFactory, final Random random) {
-        this.objectFactory = objectFactory;
-        this.random = random;
-    }
 
     @Override
     public <T> T get(Type type) {

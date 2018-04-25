@@ -45,6 +45,8 @@ public class ObjectFactoryBuilder {
     private static final List<BiFunction<ObjectFactory, Random, Provider>> DEFAULT_PROVIDERS;
 
     static {
+        // Order matters, primitive types -> enum type -> array type
+        // -> interfaces needs special handling -> general interface -> abstract
         DEFAULT_PROVIDERS = Collections.unmodifiableList(Arrays.asList(
             (f, r) -> new DefaultTypesProvider(),
             (f, r) -> new RandomPrimitiveProvider(r),

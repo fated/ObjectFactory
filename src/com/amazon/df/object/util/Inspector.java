@@ -46,6 +46,10 @@ public final class Inspector {
         return Modifier.isInterface(clazz.getModifiers());
     }
 
+    public static boolean isStatic(Class<?> clazz) {
+        return Modifier.isStatic(clazz.getModifiers());
+    }
+
     public static boolean isStatic(Member member) {
         return Modifier.isStatic(member.getModifiers());
     }

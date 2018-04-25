@@ -103,4 +103,30 @@ final class BindingTests {
         assertEquals(2, a.b.bInt);
     }
 
+    @Test
+    void testGlobalFieldNameBinding() {
+        ObjectFactory factory = ObjectFactoryBuilder.getDefaultBuilder()
+        .bindings(Bindings.bind("aInt", new Provider() {
+            @Override
+            public <T> T get(Type type) {
+                return (T) new Integer(2);
+            }
+
+            @Override
+            public boolean recognizes(Type type) {
+                return int.class.equals(type);
+            }
+        }))
+        .providers()
+        .random(new Random())
+        .build();
+
+        A a = factory.generate(A.class);
+        assertEquals(2, a.aInt);
+        assertEquals(0, a.bInt);
+        assertEquals(new Integer(0), a.cInteger);
+        assertEquals(2, a.b.aInt);
+        assertEquals(0, a.b.bInt);
+    }
+
 }

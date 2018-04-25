@@ -1,7 +1,6 @@
 package com.amazon.df.object.provider;
 
-import static com.amazon.df.object.util.Throwables.sneakyThrow;
-
+import com.amazon.df.object.ObjectCreationException;
 import com.amazon.df.object.ObjectFactory;
 import com.amazon.df.object.util.Inspector;
 
@@ -67,7 +66,7 @@ public class DefaultCollectionProvider implements Provider, WithRandomSize {
             try {
                 collection = (Collection<?>) clazz.newInstance();
             } catch (Exception e) {
-                throw sneakyThrow(e);
+                throw new ObjectCreationException("Fail to create new instance for type %s", clazz).withCause(e);
             }
         }
 

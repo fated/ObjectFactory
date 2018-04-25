@@ -1,7 +1,5 @@
 package com.amazon.df.object;
 
-import static com.amazon.df.object.util.Throwables.sneakyThrow;
-
 import com.amazon.df.object.binding.Binding;
 import com.amazon.df.object.cycle.CycleDetector;
 import com.amazon.df.object.cycle.CycleTerminator;
@@ -168,7 +166,8 @@ public class ObjectFactory {
             try {
                 field.set(instance, getArgValue(concreteClazz, field.getGenericType(), field.getName()));
             } catch (Exception e) {
-                throw sneakyThrow(e);
+                throw new ObjectCreationException("Fail to set field %s for instance type %s", field, concreteClazz)
+                              .withCause(e);
             } finally {
                 field.setAccessible(accessibility);
             }
@@ -199,7 +198,7 @@ public class ObjectFactory {
         try {
             return constructor.newInstance(constructorArgs.toArray());
         } catch (Exception e) {
-            throw sneakyThrow(e);
+            throw new ObjectCreationException("Fail to create instance for type %s", clazz).withCause(e);
         } finally {
             constructor.setAccessible(accessibility);
         }

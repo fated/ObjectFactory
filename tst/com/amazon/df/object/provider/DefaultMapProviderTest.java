@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.amazon.arsenal.reflect.TypeBuilder;
+import com.amazon.df.object.ObjectCreationException;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -60,12 +61,12 @@ class DefaultMapProviderTest implements ProviderTestBase {
         Type genericPrivateConstructorMapType = TypeBuilder.newInstance(PrivateConstructorMap.class)
                                                            .build();
 
-        assertThrows(InstantiationException.class, () -> provider.get(genericPrivateConstructorMapType));
+        assertThrows(ObjectCreationException.class, () -> provider.get(genericPrivateConstructorMapType));
 
         Type genericThrowsConstructorMapType = TypeBuilder.newInstance(ThrowsConstructorMap.class)
                                                           .build();
 
-        assertThrows(InstantiationException.class, () -> provider.get(genericThrowsConstructorMapType));
+        assertThrows(ObjectCreationException.class, () -> provider.get(genericThrowsConstructorMapType));
 
         Type parameterizedType = TypeBuilder.newInstance(Map.class)
                                             .addTypeParam(String.class)

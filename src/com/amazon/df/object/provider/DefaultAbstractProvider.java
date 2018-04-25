@@ -1,7 +1,6 @@
 package com.amazon.df.object.provider;
 
-import static com.amazon.df.object.util.Throwables.sneakyThrow;
-
+import com.amazon.df.object.ObjectCreationException;
 import com.amazon.df.object.ObjectFactory;
 import com.amazon.df.object.proxy.Handler;
 import com.amazon.df.object.util.Inspector;
@@ -53,7 +52,7 @@ public class DefaultAbstractProvider implements Provider, WithResolver {
         try {
             return clazz.newInstance();
         } catch (Exception e) {
-            throw sneakyThrow(e);
+            throw new ObjectCreationException("Fail to create new instance for type %s", clazz).withCause(e);
         }
     }
 

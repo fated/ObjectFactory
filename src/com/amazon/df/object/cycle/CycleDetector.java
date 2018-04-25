@@ -62,7 +62,7 @@ public final class CycleDetector {
 
     /**
      * Start to find dependency cycle, and return cycle nodes.
-     * given cycle A -> B -> C -> A, returns A -> B -> C.
+     * given cycle A -&gt; B -&gt; C -&gt; A, returns A -&gt; B -&gt; C.
      *
      * @param type type to check
      * @return cycle node detected

@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.amazon.arsenal.reflect.TypeBuilder;
+import com.amazon.df.object.ObjectCreationException;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -74,12 +75,12 @@ class DefaultCollectionProviderTest implements ProviderTestBase {
         Type genericPrivateConstructorListType = TypeBuilder.newInstance(PrivateConstructorList.class)
                                                             .build();
 
-        assertThrows(InstantiationException.class, () -> provider.get(genericPrivateConstructorListType));
+        assertThrows(ObjectCreationException.class, () -> provider.get(genericPrivateConstructorListType));
 
         Type genericThrowsConstructorListType = TypeBuilder.newInstance(ThrowsConstructorList.class)
                                                             .build();
 
-        assertThrows(InstantiationException.class, () -> provider.get(genericThrowsConstructorListType));
+        assertThrows(ObjectCreationException.class, () -> provider.get(genericThrowsConstructorListType));
 
         Type parameterizedType = TypeBuilder.newInstance(List.class).addTypeParam(String.class).build();
 

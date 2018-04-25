@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.amazon.arsenal.reflect.TypeBuilder;
+import com.amazon.df.object.ObjectCreationException;
 import com.amazon.df.object.ObjectFactory;
 import com.amazon.df.object.ObjectFactoryBuilder;
 import com.amazon.df.object.resolver.Resolver;
@@ -28,7 +29,7 @@ class DefaultAbstractProviderTest implements ProviderTestBase {
 
         assertThrows(IllegalStateException.class, () -> provider.get(AbstractTestClass1.class));
 
-        assertThrows(RuntimeException.class, () -> provider.get(AbstractTestClass2.class));
+        assertThrows(ObjectCreationException.class, () -> provider.get(AbstractTestClass2.class));
 
         assertThrows(IllegalStateException.class, () -> provider.get(ConcreteTestClass.class));
     }

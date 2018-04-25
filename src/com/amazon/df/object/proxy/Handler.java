@@ -4,6 +4,7 @@ import com.amazon.df.object.ObjectFactory;
 
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
+import lombok.AllArgsConstructor;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -11,20 +12,12 @@ import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.function.BiPredicate;
 
+@AllArgsConstructor
 public class Handler implements InvocationHandler, MethodHandler {
 
     private static final Object[] NO_ARGS = {};
 
     private final ObjectFactory objectFactory;
-
-    /**
-     * Instantiate a new {@link Handler}.
-     *
-     * @param objectFactory object factory
-     */
-    public Handler(ObjectFactory objectFactory) {
-        this.objectFactory = objectFactory;
-    }
 
     @Override
     public final Object invoke(Object self, Method thisMethod, Object[] args) throws Throwable {

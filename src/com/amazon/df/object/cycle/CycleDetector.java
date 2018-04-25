@@ -18,8 +18,6 @@ public final class CycleDetector {
         private CycleNode next;
         private CycleNode previous;
 
-        private String string;
-
         private CycleNode(Type type) {
             this.type = type;
         }

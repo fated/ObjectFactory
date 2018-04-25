@@ -1,6 +1,7 @@
 package com.amazon.df.object.provider;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -8,8 +9,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.amazon.arsenal.reflect.TypeBuilder;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.util.AbstractSet;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -76,6 +80,16 @@ class DefaultCollectionProviderTest implements ProviderTestBase {
                                                             .build();
 
         assertThrows(InstantiationException.class, () -> provider.get(genericThrowsConstructorListType));
+
+        Type parameterizedType = TypeBuilder.newInstance(List.class).addTypeParam(String.class).build();
+
+        List<String> stringList = provider.get(parameterizedType);
+
+        assertAll(() -> assertNotNull(stringList),
+                  () -> assertFalse(stringList.isEmpty()),
+                  () -> assertTrue(stringList instanceof ArrayList));
+
+        assertThrows(IllegalArgumentException.class, () -> provider.get(Mockito.mock(TypeVariable.class)));
     }
 
     interface UnknownCollection<E> extends Collection<E> {}
@@ -98,6 +112,10 @@ class DefaultCollectionProviderTest implements ProviderTestBase {
 
     @Test
     void recognizes() {
+        assertFalse(provider.recognizes(null));
+        assertFalse(provider.recognizes(String.class));
+        assertFalse(provider.recognizes(Mockito.mock(WildcardType.class)));
+
         Type stringListType = TypeBuilder.newInstance(List.class)
                                          .addTypeParam(String.class)
                                          .build();

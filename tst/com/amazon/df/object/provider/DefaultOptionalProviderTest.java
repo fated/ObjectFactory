@@ -3,6 +3,7 @@ package com.amazon.df.object.provider;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.amazon.arsenal.reflect.TypeBuilder;
@@ -15,6 +16,9 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 
 class DefaultOptionalProviderTest implements ProviderTestBase {
 
@@ -58,10 +62,34 @@ class DefaultOptionalProviderTest implements ProviderTestBase {
                   () -> assertTrue(stringOptional.isPresent()),
                   () -> assertTrue(stringOptional instanceof Optional));
 
+        OptionalInt intOptional = provider.get(OptionalInt.class);
+
+        assertAll(() -> assertNotNull(intOptional),
+                  () -> assertTrue(intOptional.isPresent()),
+                  () -> assertTrue(intOptional instanceof OptionalInt));
+
+        OptionalLong longOptional = provider.get(OptionalLong.class);
+
+        assertAll(() -> assertNotNull(longOptional),
+                  () -> assertTrue(longOptional.isPresent()),
+                  () -> assertTrue(longOptional instanceof OptionalLong));
+
+        OptionalDouble doubleOptional = provider.get(OptionalDouble.class);
+
+        assertAll(() -> assertNotNull(doubleOptional),
+                  () -> assertTrue(doubleOptional.isPresent()),
+                  () -> assertTrue(doubleOptional instanceof OptionalDouble));
+
+        assertThrows(IllegalArgumentException.class, () -> provider.get(String.class));
     }
 
     @Test
     void recognizes() {
+        assertFalse(provider.recognizes(null));
+        assertTrue(provider.recognizes(OptionalInt.class));
+        assertTrue(provider.recognizes(OptionalLong.class));
+        assertTrue(provider.recognizes(OptionalDouble.class));
+
         Type stringType = TypeBuilder.newInstance(String.class).build();
 
         assertFalse(provider.recognizes(stringType));

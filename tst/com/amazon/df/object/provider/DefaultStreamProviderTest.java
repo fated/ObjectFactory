@@ -90,6 +90,8 @@ class DefaultStreamProviderTest implements ProviderTestBase {
 
     @Test
     void recognizes() {
+        assertFalse(provider.recognizes(null));
+
         Type streamType = TypeBuilder.newInstance(Stream.class).build();
 
         assertTrue(provider.recognizes(streamType));

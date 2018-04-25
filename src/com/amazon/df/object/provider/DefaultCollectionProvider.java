@@ -1,8 +1,9 @@
 package com.amazon.df.object.provider;
 
+import static com.amazon.df.object.util.Throwables.sneakyThrow;
+
 import com.amazon.df.object.ObjectFactory;
 import com.amazon.df.object.util.Inspector;
-import com.amazon.df.object.util.Throwables;
 
 import lombok.AllArgsConstructor;
 
@@ -61,13 +62,12 @@ public class DefaultCollectionProvider implements Provider, WithRandomSize {
             } else {
                 // TODO: add resolve concrete type
                 throw new IllegalArgumentException("Unknown type: " + clazz);
-                //collection = newInstance(resolveConcreteType(clazz));
             }
         } else {
             try {
                 collection = (Collection<?>) clazz.newInstance();
             } catch (Exception e) {
-                throw Throwables.sneakyThrow(e);
+                throw sneakyThrow(e);
             }
         }
 

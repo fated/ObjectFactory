@@ -1,6 +1,7 @@
 package com.amazon.df.object.provider;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -8,8 +9,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.amazon.arsenal.reflect.TypeBuilder;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -62,6 +66,19 @@ class DefaultMapProviderTest implements ProviderTestBase {
                                                           .build();
 
         assertThrows(InstantiationException.class, () -> provider.get(genericThrowsConstructorMapType));
+
+        Type parameterizedType = TypeBuilder.newInstance(Map.class)
+                                            .addTypeParam(String.class)
+                                            .addTypeParam(String.class)
+                                            .build();
+
+        Map<String, String> stringMap = provider.get(parameterizedType);
+
+        assertAll(() -> assertNotNull(stringMap),
+                  () -> assertFalse(stringMap.isEmpty()),
+                  () -> assertTrue(stringMap instanceof HashMap));
+
+        assertThrows(IllegalArgumentException.class, () -> provider.get(Mockito.mock(TypeVariable.class)));
     }
 
     interface UnknownMap<K, V> {}
@@ -84,6 +101,10 @@ class DefaultMapProviderTest implements ProviderTestBase {
 
     @Test
     void recognizes() {
+        assertFalse(provider.recognizes(null));
+        assertFalse(provider.recognizes(String.class));
+        assertFalse(provider.recognizes(Mockito.mock(WildcardType.class)));
+
         Type stringMapType = TypeBuilder.newInstance(Map.class)
                                         .addTypeParam(String.class)
                                         .addTypeParam(String.class)

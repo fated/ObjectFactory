@@ -66,7 +66,9 @@ public class DefaultAbstractProvider implements Provider, WithResolver {
      */
     private void checkIfSupported(final Class<?> clazz) {
         final Constructor constructor = objectFactory.getClassSpy().findConstructor(clazz);
-        if (constructor.getParameterCount() != 0) {
+        // Inner abstract class will have resident class as parameter for the constructor
+        // so this provider does not support proxying inner abstract class
+        if (constructor == null || constructor.getParameterCount() != 0) {
             throw new IllegalStateException(clazz + " doesn't have constructor with no arguments");
         }
     }

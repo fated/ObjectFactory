@@ -1,8 +1,9 @@
 package com.amazon.df.object.provider;
 
+import static com.amazon.df.object.util.Throwables.sneakyThrow;
+
 import com.amazon.df.object.ObjectFactory;
 import com.amazon.df.object.util.Inspector;
-import com.amazon.df.object.util.Throwables;
 
 import lombok.AllArgsConstructor;
 
@@ -59,7 +60,7 @@ public class DefaultMapProvider implements Provider, WithRandomSize {
             try {
                 map = (Map<?, ?>) clazz.newInstance();
             } catch (Exception e) {
-                throw Throwables.sneakyThrow(e);
+                throw sneakyThrow(e);
             }
         }
 

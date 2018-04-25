@@ -3,10 +3,6 @@
 
     <import file="${happytrails.root}/happytrails.xml"/>
 
-    <property name="unit.test.minimum.coverage.lines" value="0.05"/>
-    <property name="unit.test.minimum.coverage.branches" value="0.05"/>
-    <property name="chronometer.check.failBuild" value="false"/>
-
     <ht:import file="df-build-logic.xml" optional="false"/>
     <ht:import file="happier-trails.xml" optional="false"/>
     <ht:import file="lombok/happier-trails.xml" optional="false"/>

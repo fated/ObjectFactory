@@ -25,8 +25,10 @@ import java.util.Random;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.concurrent.ThreadSafe;
 
 @Getter
+@ThreadSafe
 public class ObjectFactory {
 
     private static final Map<Class<?>, Object> DEFAULT_EXPLICIT_PRIMITIVES = new HashMap<>();
@@ -66,7 +68,6 @@ public class ObjectFactory {
     // field type -> provider
     private final Map<String, Provider> globalNameBindings = new HashMap<>();
 
-    private final CycleDetector cycleDetector = new CycleDetector();
     private final ClassSpy classSpy;
 
     private final List<Provider> providers;
@@ -101,8 +102,12 @@ public class ObjectFactory {
      * @param <T> the type to create
      * @return generated value
      */
-    @SuppressWarnings("unchecked")
     public <T> T generate(Type type) {
+        return generate(type, new CycleDetector());
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T generate(Type type, CycleDetector cycleDetector) {
         CycleDetector.CycleNode cycle = cycleDetector.start(type);
 
         if (cycle != null) {
@@ -126,7 +131,7 @@ public class ObjectFactory {
                     return (T) DEFAULT_EXPLICIT_PRIMITIVES.get(clazz);
                 }
 
-                return generateObject(clazz);
+                return generateObject(clazz, cycleDetector);
             }
 
         } finally {
@@ -136,22 +141,18 @@ public class ObjectFactory {
         throw new IllegalArgumentException("Unrecognized type " + type);
     }
 
-    private <T> T generateObject(Class<?> clazz) {
-        Object instance = allocateInstance(clazz);
-
-        return populateFields(clazz, instance);
-    }
-
     @SuppressWarnings("unchecked")
-    private <T> T populateFields(Class<?> concreteClazz, Object instance) {
+    private <T> T generateObject(Class<?> clazz, CycleDetector cycleDetector) {
+        Object instance = allocateInstance(clazz, cycleDetector);
+
         // First try setter to set values
         List<String> invokedSetter = new ArrayList<>();
 
-        for (Method setter : classSpy.findMethods(concreteClazz, classSpy.getSetterFilter())) {
+        for (Method setter : classSpy.findMethods(clazz, classSpy.getSetterFilter())) {
             Type argType = setter.getGenericParameterTypes()[0];
             String fieldName = classSpy.extractFieldNameFromSetter(setter);
             try {
-                setter.invoke(instance, getArgValue(concreteClazz, argType, fieldName));
+                setter.invoke(instance, getArgValue(clazz, argType, fieldName, cycleDetector));
                 invokedSetter.add(fieldName);
             } catch (Exception e) {
                 // make setter invoke not fail on error
@@ -162,13 +163,13 @@ public class ObjectFactory {
         // Then try reflection to set values
         Predicate<Field> fieldFilter = classSpy.getFieldFilter().and(f -> !invokedSetter.contains(f.getName()));
 
-        for (Field field : classSpy.findFields(concreteClazz, fieldFilter)) {
+        for (Field field : classSpy.findFields(clazz, fieldFilter)) {
             boolean accessibility = field.isAccessible();
             field.setAccessible(true);
             try {
-                field.set(instance, getArgValue(concreteClazz, field.getGenericType(), field.getName()));
+                field.set(instance, getArgValue(clazz, field.getGenericType(), field.getName(), cycleDetector));
             } catch (Exception e) {
-                throw new ObjectCreationException("Fail to set field %s for instance type %s", field, concreteClazz)
+                throw new ObjectCreationException("Fail to set field %s for instance type %s", field, clazz)
                               .withCause(e);
             } finally {
                 field.setAccessible(accessibility);
@@ -178,13 +179,13 @@ public class ObjectFactory {
         return (T) instance;
     }
 
-    private Object getArgValue(Type concreteClazz, Type argType, String fieldName) {
+    private Object getArgValue(Type concreteClazz, Type argType, String fieldName, CycleDetector cycleDetector) {
         return Optional.ofNullable(getBoundProvider(concreteClazz, argType, fieldName))
                        .map(provider -> provider.get(argType))
-                       .orElseGet(() -> generate(argType));
+                       .orElseGet(() -> generate(argType, cycleDetector));
     }
 
-    private Object allocateInstance(Class<?> clazz) {
+    private Object allocateInstance(Class<?> clazz, CycleDetector cycleDetector) {
         final Constructor<?> constructor = classSpy.findConstructor(clazz);
 
         // allow the invocation of non-public constructor
@@ -194,7 +195,7 @@ public class ObjectFactory {
 
         final List<Object> constructorArgs = new ArrayList<>();
         for (final Type genericType : constructor.getGenericParameterTypes()) {
-            constructorArgs.add(generate(genericType));
+            constructorArgs.add(generate(genericType, cycleDetector));
         }
 
         try {

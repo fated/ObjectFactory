@@ -50,7 +50,7 @@ public class ObjectFactoryBuilder {
             (f, r) -> new RandomPrimitiveProvider(r),
             (f, r) -> new RandomBigNumberProvider(r),
             (f, r) -> new RandomDateProvider(r),
-            (f, r) -> new RandomStringProvider(r),
+            (f, r) -> new RandomStringProvider(),
             (f, r) -> new RandomBufferProvider(r),
             (f, r) -> new DefaultEnumProvider(r),
             (f, r) -> new DefaultArrayProvider(f, r),

@@ -22,7 +22,7 @@ public class RandomPrimitiveProvider implements Provider {
         FUNCTIONS.put(char.class, r -> (char) (r.nextInt(PRINTABLE_ASCII_CHAR_SIZE) + PRINTABLE_ASCII_CHAR_START));
         FUNCTIONS.put(short.class, r -> (short) r.nextInt());
         FUNCTIONS.put(int.class, r -> r.nextInt());
-        FUNCTIONS.put(long.class, r -> Double.doubleToLongBits(r.nextDouble()));
+        FUNCTIONS.put(long.class, r -> r.nextLong());
         FUNCTIONS.put(float.class, r -> r.nextFloat());
         FUNCTIONS.put(double.class, r -> r.nextDouble());
         FUNCTIONS.put(Boolean.class, FUNCTIONS.get(boolean.class));

@@ -3,9 +3,11 @@ package com.amazon.df.object;
 import com.amazon.df.object.binding.Binding;
 import com.amazon.df.object.cycle.CycleTerminator;
 import com.amazon.df.object.cycle.NullCycleTerminator;
+import com.amazon.df.object.provider.DefaultAbstractProvider;
 import com.amazon.df.object.provider.DefaultArrayProvider;
 import com.amazon.df.object.provider.DefaultCollectionProvider;
 import com.amazon.df.object.provider.DefaultEnumProvider;
+import com.amazon.df.object.provider.DefaultInterfaceProvider;
 import com.amazon.df.object.provider.DefaultMapProvider;
 import com.amazon.df.object.provider.DefaultOptionalProvider;
 import com.amazon.df.object.provider.DefaultStreamProvider;
@@ -55,7 +57,9 @@ public class ObjectFactoryBuilder {
             (f, r) -> new DefaultCollectionProvider(f, r),
             (f, r) -> new DefaultMapProvider(f, r),
             (f, r) -> new DefaultOptionalProvider(f),
-            (f, r) -> new DefaultStreamProvider(f, r)
+            (f, r) -> new DefaultStreamProvider(f, r),
+            (f, r) -> new DefaultInterfaceProvider(f),
+            (f, r) -> new DefaultAbstractProvider(f)
         ));
     }
 

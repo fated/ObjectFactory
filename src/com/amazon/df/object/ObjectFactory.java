@@ -6,18 +6,15 @@ import com.amazon.df.object.binding.Binding;
 import com.amazon.df.object.cycle.CycleDetector;
 import com.amazon.df.object.cycle.CycleTerminator;
 import com.amazon.df.object.provider.Provider;
-import com.amazon.df.object.proxy.Handler;
 import com.amazon.df.object.resolver.Resolver;
 import com.amazon.df.object.spy.ClassSpy;
 import com.amazon.df.object.util.Inspector;
 
-import javassist.util.proxy.ProxyFactory;
 import lombok.Getter;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -141,19 +138,9 @@ public class ObjectFactory {
     }
 
     private <T> T generateObject(Class<?> clazz) {
-        Class<?> concreteClazz = clazz;
+        Object instance = allocateInstance(clazz);
 
-        if (Inspector.isInterface(clazz) || Inspector.isAbstract(clazz)) {
-            concreteClazz = resolveConcreteType(clazz);
-
-            if (concreteClazz == null) {
-                return handleInterfaceOrAbstract(clazz);
-            }
-        }
-
-        Object instance = allocateInstance(concreteClazz);
-
-        return populateFields(concreteClazz, instance);
+        return populateFields(clazz, instance);
     }
 
     private <T> T populateFields(Class<?> concreteClazz, Object instance) {
@@ -196,42 +183,6 @@ public class ObjectFactory {
                        .orElseGet(() -> generate(argType));
     }
 
-    private <T> T handleInterfaceOrAbstract(Class<?> clazz) {
-        if (Inspector.isInterface(clazz)) {
-            return (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class[] {clazz}, new Handler(this));
-        }
-
-        if (Inspector.isAbstract(clazz)) {
-            // Alternative solution is to use CGLib's Enhancer
-            checkIfSupported(clazz);
-            ProxyFactory factory = new ProxyFactory();
-            factory.setSuperclass(clazz);
-            Object object = allocateInstance(factory.createClass());
-
-            ((javassist.util.proxy.Proxy) object).setHandler(new Handler(this));
-
-            return (T) object;
-        }
-
-        throw new IllegalStateException("Unable to create proxy for " + clazz);
-    }
-
-    /**
-     * Checks if the abstract class is supported.
-     * Currently only supports abstract class with no argument constructor.
-     *
-     * @param clazz the class to check.
-     * @throws IllegalStateException if the class is not supported.
-     */
-    private void checkIfSupported(final Class clazz) {
-        assert clazz != null : "clazz cannot be null";
-
-        final Constructor constructor = classSpy.findConstructor(clazz);
-        if (constructor.getParameterCount() != 0) {
-            throw new IllegalStateException(clazz + " doesn't have constructor with no arguments");
-        }
-    }
-
     private Object allocateInstance(Class<?> clazz) {
         final Constructor<?> constructor = classSpy.findConstructor(clazz);
 
@@ -252,21 +203,6 @@ public class ObjectFactory {
         } finally {
             constructor.setAccessible(accessibility);
         }
-    }
-
-    private Class<?> resolveConcreteType(Class<?> clazz) {
-        for (Resolver resolver : resolvers) {
-            Class<?> resolved = resolver.resolve(clazz);
-            if (resolved != null) {
-                if (Inspector.isInterface(resolved) || Inspector.isAbstract(resolved)) {
-                    throw new IllegalStateException(String.format("%s resolved %s to non-concrete type %s",
-                                                                  resolver.getClass(), clazz, resolved));
-                }
-                return resolved;
-            }
-        }
-
-        return null;
     }
 
     private CycleTerminator getTerminator(CycleDetector.CycleNode cycle) {

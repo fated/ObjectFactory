@@ -21,6 +21,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 @SuppressWarnings("unused")
 class ObjectFactoryTests {
@@ -101,6 +105,37 @@ class ObjectFactoryTests {
     }
 
     @Test
+    void testThreadSafe() throws ExecutionException, InterruptedException {
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+
+        Future<D> futureD1 = executor.submit(() -> factory.generate(D.class));
+        Future<D> futureD2 = executor.submit(() -> factory.generate(D.class));
+        Future<D> futureD3 = executor.submit(() -> factory.generate(D.class));
+        Future<D> futureD4 = executor.submit(() -> factory.generate(D.class));
+
+        D d1 = futureD1.get();
+        assertNotNull(d1);
+        assertNotNull(d1.e);
+        assertNull(d1.e.d);
+
+        D d2 = futureD2.get();
+        assertNotNull(d2);
+        assertNotNull(d2.e);
+        assertNull(d2.e.d);
+
+        D d3 = futureD3.get();
+
+        assertNotNull(d3);
+        assertNotNull(d3.e);
+        assertNull(d3.e.d);
+
+        D d4 = futureD4.get();
+        assertNotNull(d4);
+        assertNotNull(d4.e);
+        assertNull(d4.e.d);
+    }
+
+    @Test
     void testNoProviderThrows() {
         ObjectFactory objectFactory = ObjectFactoryBuilder.getDefaultBuilder()
                                                           .failOnMissingPrimitiveProvider(true)
@@ -174,5 +209,16 @@ class ObjectFactoryTests {
     }
     class C {
         A a;
+    }
+
+    class D {
+        E e;
+        public void setSomething(String e) throws InterruptedException {
+            // long run setter
+            Thread.sleep(500L);
+        }
+    }
+    class E {
+        D d;
     }
 }

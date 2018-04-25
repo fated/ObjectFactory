@@ -101,6 +101,7 @@ public class ObjectFactory {
      * @param <T> the type to create
      * @return generated value
      */
+    @SuppressWarnings("unchecked")
     public <T> T generate(Type type) {
         CycleDetector.CycleNode cycle = cycleDetector.start(type);
 
@@ -141,6 +142,7 @@ public class ObjectFactory {
         return populateFields(clazz, instance);
     }
 
+    @SuppressWarnings("unchecked")
     private <T> T populateFields(Class<?> concreteClazz, Object instance) {
         // First try setter to set values
         List<String> invokedSetter = new ArrayList<>();
@@ -228,9 +230,6 @@ public class ObjectFactory {
             return provider;
         }
 
-        if (providers == null) {
-            return null;
-        }
         for (Provider p : providers) {
             if (p.recognizes(type)) {
                 return p;

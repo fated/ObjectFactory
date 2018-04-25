@@ -1,8 +1,12 @@
 package com.amazon.df.object;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.amazon.arsenal.reflect.TypeBuilder;
 import com.amazon.df.object.provider.DeterministicProvider;
 import com.amazon.df.object.provider.Provider;
 
@@ -15,6 +19,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
 @SuppressWarnings("unused")
@@ -95,6 +100,37 @@ class ObjectFactoryTests {
         validatePrimitiveStruct(s);
     }
 
+    @Test
+    void testNoProviderThrows() {
+        ObjectFactory objectFactory = ObjectFactoryBuilder.getDefaultBuilder()
+                                                          .failOnMissingPrimitiveProvider(true)
+                                                          .providers()
+                                                          .random(new Random())
+                                                          .build();
+
+        assertThrows(IllegalStateException.class, () -> objectFactory.generate(String.class));
+
+        assertThrows(IllegalArgumentException.class,
+                     () -> objectFactory.generate(TypeBuilder.newInstance(List.class)
+                                                             .addTypeParam(String.class)
+                                                             .build()));
+    }
+
+    @Test
+    void testGeneratePojo() {
+        ObjectFactory objectFactory = ObjectFactoryBuilder.getDefaultObjectFactory(new Random());
+
+        A a = objectFactory.generate(A.class);
+
+        assertNotNull(a.s);
+        assertNotNull(a.sss);
+        assertFalse(a.sss.isEmpty());
+        assertNotNull(a.b);
+        assertNotNull(a.b.bs);
+        assertNotNull(a.b.c);
+        assertNull(a.b.c.a);
+    }
+
     //
     // Helpers
     //
@@ -121,5 +157,22 @@ class ObjectFactoryTests {
         assertNotNull(s.aByteBuffer);
         assertEquals("hello", s.aString);
         assertEquals(new Date(1), s.aDate);
+    }
+
+    class A {
+        String s;
+        List<String> sss;
+        B b;
+    }
+    class B {
+        String bs;
+        C c;
+
+        public void setBs(String bs) {
+            this.bs = bs;
+        }
+    }
+    class C {
+        A a;
     }
 }

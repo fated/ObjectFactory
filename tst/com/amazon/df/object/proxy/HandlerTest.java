@@ -65,7 +65,7 @@ class HandlerTest {
         Mockito.doReturn(String.class).when(method).getGenericReturnType();
         Mockito.doReturn("test").when(objectFactory).generate(Mockito.any(Type.class));
 
-        assertEquals("test", handler.invoke(null, method, null));
+        assertEquals("test", handler.invoke(null, method, new Object[] {new Object()}));
 
         Mockito.verify(objectFactory, Mockito.times(1)).generate(Mockito.any());
     }

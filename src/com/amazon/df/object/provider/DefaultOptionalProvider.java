@@ -1,6 +1,7 @@
 package com.amazon.df.object.provider;
 
 import com.amazon.df.object.ObjectFactory;
+import com.amazon.df.object.cycle.CycleDetector;
 
 import lombok.AllArgsConstructor;
 
@@ -18,7 +19,7 @@ public class DefaultOptionalProvider implements Provider {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T get(Type type) {
+    public <T> T get(Type type, CycleDetector cycleDetector) {
         if (type instanceof Class) {
             if (Optional.class.equals(type)) {
                 return (T) Optional.empty();
@@ -40,7 +41,7 @@ public class DefaultOptionalProvider implements Provider {
 
             Type actualType = optionalType.getActualTypeArguments()[0];
 
-            return (T) Optional.ofNullable(objectFactory.generate(actualType));
+            return (T) Optional.ofNullable(objectFactory.generate(actualType, cycleDetector));
         }
 
         throw new IllegalArgumentException("Unknown type: " + type);

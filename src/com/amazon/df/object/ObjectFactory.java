@@ -30,7 +30,6 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * A thread-safe object factory to generate object with random values populated for given type.
  */
-@Getter
 @ThreadSafe
 public class ObjectFactory {
 
@@ -72,13 +71,18 @@ public class ObjectFactory {
     private final Map<Type, Provider> globalTypeBindings = new HashMap<>();
 
     private final List<Provider> providers;
+    @Getter
     private final List<Resolver> resolvers;
     private final List<CycleTerminator> terminators;
 
+    @Getter
     private final Random random;
+    @Getter
     private final ClassSpy classSpy;
 
+    @Getter
     private final int minSize;
+    @Getter
     private final int maxSize;
     private final boolean failOnMissingPrimitiveProvider;
 
@@ -114,16 +118,17 @@ public class ObjectFactory {
     }
 
     /**
-     * Internal logic to generate an object of type with cycle detector.
+     * Internal logic to generate an object of type with cycle detector, used by {@link Provider} only.
      *
      * @param type the type to create
+     * @param cycleDetector dependency cycle detector
      * @param <T> the type to create
      * @return generated value
      * @throws ObjectCreationException if failed to create object
      * @throws IllegalArgumentException if given type is not recognized
      */
     @SuppressWarnings("unchecked")
-    private <T> T generate(Type type, CycleDetector cycleDetector) {
+    public <T> T generate(Type type, CycleDetector cycleDetector) {
 
         CycleDetector.CycleNode cycle = cycleDetector.start(type);
 
@@ -138,7 +143,7 @@ public class ObjectFactory {
 
             if (provider != null) {
                 // use provider found to generate value for type
-                return provider.get(type);
+                return provider.get(type, cycleDetector);
             }
 
             // POJO case and Complex JO here, all other cases should be covered in providers
@@ -251,7 +256,7 @@ public class ObjectFactory {
      */
     private Object getArgValue(Type containerType, Type fieldType, String fieldName, CycleDetector cycleDetector) {
         return Optional.ofNullable(getBoundProvider(containerType, fieldType, fieldName))
-                       .map(provider -> provider.get(fieldType))
+                       .map(provider -> provider.get(fieldType, cycleDetector))
                        .orElseGet(() -> generate(fieldType, cycleDetector));
     }
 

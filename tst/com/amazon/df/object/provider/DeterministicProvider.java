@@ -1,5 +1,7 @@
 package com.amazon.df.object.provider;
 
+import com.amazon.df.object.cycle.CycleDetector;
+
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +25,11 @@ public class DeterministicProvider implements Provider {
     @Override
     public <T> T get(Type type) {
         return (T) mapping.get(type);
+    }
+
+    @Override
+    public <T> T get(Type type, CycleDetector cycleDetector) {
+        return get(type);
     }
 
     @Override

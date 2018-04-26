@@ -1,5 +1,7 @@
 package com.amazon.df.object.provider;
 
+import com.amazon.df.object.cycle.CycleDetector;
+
 import lombok.NoArgsConstructor;
 
 import java.lang.reflect.Type;
@@ -12,6 +14,11 @@ public class RandomStringProvider implements Provider {
     @SuppressWarnings("unchecked")
     public <T> T get(Type type) {
         return (T) UUID.randomUUID().toString();
+    }
+
+    @Override
+    public <T> T get(Type type, CycleDetector cycleDetector) {
+        return get(type);
     }
 
     @Override

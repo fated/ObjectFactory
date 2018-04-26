@@ -1,5 +1,7 @@
 package com.amazon.df.object.provider;
 
+import com.amazon.df.object.cycle.CycleDetector;
+
 import lombok.AllArgsConstructor;
 
 import java.lang.reflect.Type;
@@ -40,6 +42,11 @@ public class RandomBigNumberProvider implements Provider {
     @SuppressWarnings("unchecked")
     public <T> T get(Type type) {
         return (T) FUNCTIONS.get(type).apply(random);
+    }
+
+    @Override
+    public <T> T get(Type type, CycleDetector cycleDetector) {
+        return get(type);
     }
 
     @Override

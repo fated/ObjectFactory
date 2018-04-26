@@ -2,6 +2,7 @@ package com.amazon.df.object.provider;
 
 import com.amazon.df.object.ObjectCreationException;
 import com.amazon.df.object.ObjectFactory;
+import com.amazon.df.object.cycle.CycleDetector;
 import com.amazon.df.object.proxy.Handler;
 import com.amazon.df.object.util.Inspector;
 
@@ -18,7 +19,7 @@ public class DefaultAbstractProvider implements Provider, WithResolver {
     private final ObjectFactory objectFactory;
 
     @Override
-    public <T> T get(Type type) {
+    public <T> T get(Type type, CycleDetector cycleDetector) {
         Class<?> clazz = (Class<?>) type;
 
         if (Inspector.isAbstract(clazz)) {
@@ -28,7 +29,7 @@ public class DefaultAbstractProvider implements Provider, WithResolver {
             if (concreteClazz == null) {
                 return handleAbstract(clazz);
             } else {
-                return objectFactory.generate(concreteClazz);
+                return objectFactory.generate(concreteClazz, cycleDetector);
             }
         }
 

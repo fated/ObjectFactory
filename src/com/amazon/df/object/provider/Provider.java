@@ -1,5 +1,7 @@
 package com.amazon.df.object.provider;
 
+import com.amazon.df.object.cycle.CycleDetector;
+
 import java.lang.reflect.Type;
 
 /**
@@ -14,7 +16,19 @@ public interface Provider {
      * @param <T> the type represented by given type variable
      * @return value of given type
      */
-    <T> T get(Type type);
+    default <T> T get(Type type) {
+        return get(type, new CycleDetector());
+    }
+
+    /**
+     * Process this type and return a value of this specific type with a given cycle detector.
+     *
+     * @param type given type
+     * @param cycleDetector dependency cycle detector
+     * @param <T> the type represented by given type variable
+     * @return value of given type
+     */
+    <T> T get(Type type, CycleDetector cycleDetector);
 
     /**
      * Check if a type can be recognized by this provider.

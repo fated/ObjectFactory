@@ -2,6 +2,7 @@ package com.amazon.df.object.provider;
 
 import com.amazon.df.object.ObjectCreationException;
 import com.amazon.df.object.ObjectFactory;
+import com.amazon.df.object.cycle.CycleDetector;
 import com.amazon.df.object.util.Inspector;
 
 import lombok.AllArgsConstructor;
@@ -20,7 +21,7 @@ public class DefaultMapProvider implements Provider, WithRandomSize {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T get(Type type) {
+    public <T> T get(Type type, CycleDetector cycleDetector) {
         if (type instanceof Class) {
             return (T) createMap((Class<Map>) type, 0);
         }
@@ -36,7 +37,7 @@ public class DefaultMapProvider implements Provider, WithRandomSize {
             Type value = parameterizedType.getActualTypeArguments()[1];
 
             for (int i = 0; i < entries; ++i) {
-                map.put(objectFactory.generate(key), objectFactory.generate(value));
+                map.put(objectFactory.generate(key, cycleDetector), objectFactory.generate(value, cycleDetector));
             }
 
             return (T) map;

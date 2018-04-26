@@ -1,6 +1,7 @@
 package com.amazon.df.object.provider;
 
 import com.amazon.df.object.ObjectFactory;
+import com.amazon.df.object.cycle.CycleDetector;
 
 import lombok.AllArgsConstructor;
 
@@ -17,19 +18,19 @@ public class DefaultArrayProvider implements Provider, WithRandomSize {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T get(Type type) {
+    public <T> T get(Type type, CycleDetector cycleDetector) {
         if (type instanceof Class) {
-            return (T) createArray(((Class<?>) type).getComponentType());
+            return (T) createArray(((Class<?>) type).getComponentType(), cycleDetector);
         }
 
         if (type instanceof GenericArrayType) {
-            return (T) createArray(((GenericArrayType) type).getGenericComponentType());
+            return (T) createArray(((GenericArrayType) type).getGenericComponentType(), cycleDetector);
         }
 
         throw new IllegalArgumentException("Unknown type: " + type);
     }
 
-    private Object createArray(Type clazz) {
+    private Object createArray(Type clazz, CycleDetector cycleDetector) {
         Object array;
         int length = getRandomSize(objectFactory, random);
         if (clazz instanceof Class) {
@@ -39,7 +40,7 @@ public class DefaultArrayProvider implements Provider, WithRandomSize {
         }
 
         for (int i = 0; i < length; ++i) {
-            Array.set(array, i, objectFactory.generate(clazz));
+            Array.set(array, i, objectFactory.generate(clazz, cycleDetector));
         }
 
         return array;

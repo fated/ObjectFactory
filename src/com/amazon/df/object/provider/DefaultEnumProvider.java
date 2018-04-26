@@ -1,5 +1,7 @@
 package com.amazon.df.object.provider;
 
+import com.amazon.df.object.cycle.CycleDetector;
+
 import lombok.AllArgsConstructor;
 
 import java.lang.reflect.Type;
@@ -18,6 +20,11 @@ public class DefaultEnumProvider implements Provider {
         final Object[] enums = clazz.getEnumConstants();
 
         return (T) (enums.length == 0 ? null : enums[random.nextInt(enums.length)]);
+    }
+
+    @Override
+    public <T> T get(Type type, CycleDetector cycleDetector) {
+        return get(type);
     }
 
     @Override

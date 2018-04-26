@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.amazon.arsenal.reflect.TypeBuilder;
+import com.amazon.df.object.ObjectFactory;
+import com.amazon.df.object.ObjectFactoryBuilder;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -19,6 +21,10 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 class DefaultOptionalProviderTest implements ProviderTestBase {
 
@@ -84,6 +90,43 @@ class DefaultOptionalProviderTest implements ProviderTestBase {
     }
 
     @Test
+    void testThreadSafe() throws ExecutionException, InterruptedException {
+        ObjectFactory factory = ObjectFactoryBuilder.getDefaultBuilder().maxSize(1).build();
+
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+
+        Future<A> futureA1 = executor.submit(() -> factory.generate(A.class));
+        Future<A> futureA2 = executor.submit(() -> factory.generate(A.class));
+        Future<A> futureA3 = executor.submit(() -> factory.generate(A.class));
+        Future<A> futureA4 = executor.submit(() -> factory.generate(A.class));
+
+        A a1 = futureA1.get();
+        assertNotNull(a1);
+        assertNotNull(a1.b);
+        assertNotNull(a1.b.a);
+        assertFalse(a1.b.a.isPresent());
+
+        A a2 = futureA2.get();
+        assertNotNull(a2);
+        assertNotNull(a2.b);
+        assertNotNull(a2.b.a);
+        assertFalse(a2.b.a.isPresent());
+
+        A a3 = futureA3.get();
+
+        assertNotNull(a3);
+        assertNotNull(a3.b);
+        assertNotNull(a3.b.a);
+        assertFalse(a3.b.a.isPresent());
+
+        A a4 = futureA4.get();
+        assertNotNull(a4);
+        assertNotNull(a4.b);
+        assertNotNull(a4.b.a);
+        assertFalse(a4.b.a.isPresent());
+    }
+
+    @Test
     void recognizes() {
         assertFalse(provider.recognizes(null));
         assertTrue(provider.recognizes(OptionalInt.class));
@@ -117,4 +160,11 @@ class DefaultOptionalProviderTest implements ProviderTestBase {
         assertTrue(provider.recognizes(stringOptionalType));
     }
 
+}
+
+class A {
+    B b;
+}
+class B {
+    Optional<A> a;
 }

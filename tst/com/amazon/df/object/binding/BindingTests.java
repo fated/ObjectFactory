@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.amazon.df.object.ObjectFactory;
 import com.amazon.df.object.ObjectFactoryBuilder;
+import com.amazon.df.object.cycle.CycleDetector;
 import com.amazon.df.object.provider.Provider;
 
 import org.junit.jupiter.api.Test;
@@ -30,7 +31,7 @@ final class BindingTests {
         ObjectFactory factory = ObjectFactoryBuilder.getDefaultBuilder()
             .bindings(Bindings.bind(int.class, new Provider() {
                 @Override
-                public <T> T get(Type type) {
+                public <T> T get(Type type, CycleDetector cycleDetector) {
                     return (T) new Integer(2);
                 }
 
@@ -56,7 +57,7 @@ final class BindingTests {
         ObjectFactory factory = ObjectFactoryBuilder.getDefaultBuilder()
             .bindings(Bindings.bind(A.class, "aInt", new Provider() {
                 @Override
-                public <T> T get(Type type) {
+                public <T> T get(Type type, CycleDetector cycleDetector) {
                     return (T) new Integer(2);
                 }
 
@@ -82,7 +83,7 @@ final class BindingTests {
         ObjectFactory factory = ObjectFactoryBuilder.getDefaultBuilder()
         .bindings(Bindings.bind(B.class, int.class, new Provider() {
             @Override
-            public <T> T get(Type type) {
+            public <T> T get(Type type, CycleDetector cycleDetector) {
                 return (T) new Integer(2);
             }
 
@@ -108,7 +109,7 @@ final class BindingTests {
         ObjectFactory factory = ObjectFactoryBuilder.getDefaultBuilder()
         .bindings(Bindings.bind("aInt", new Provider() {
             @Override
-            public <T> T get(Type type) {
+            public <T> T get(Type type, CycleDetector cycleDetector) {
                 return (T) new Integer(2);
             }
 

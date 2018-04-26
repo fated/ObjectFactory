@@ -1,5 +1,7 @@
 package com.amazon.df.object.provider;
 
+import com.amazon.df.object.cycle.CycleDetector;
+
 import lombok.AllArgsConstructor;
 
 import java.lang.reflect.Type;
@@ -26,6 +28,11 @@ public class RandomDateProvider implements Provider {
         Date d = new Date(FIRST_MILLIS + randomValue);
 
         return (T) d;
+    }
+
+    @Override
+    public <T> T get(Type type, CycleDetector cycleDetector) {
+        return get(type);
     }
 
     @Override

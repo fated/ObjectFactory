@@ -1,6 +1,7 @@
 package com.amazon.df.object.provider;
 
 import com.amazon.df.object.ObjectFactory;
+import com.amazon.df.object.cycle.CycleDetector;
 
 import lombok.AllArgsConstructor;
 
@@ -21,7 +22,7 @@ public class DefaultStreamProvider implements Provider, WithRandomSize {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T get(Type type) {
+    public <T> T get(Type type, CycleDetector cycleDetector) {
         if (type instanceof Class) {
             if (IntStream.class.isAssignableFrom((Class<?>) type)) {
                 return (T) random.ints(getRandomSize(objectFactory, random));
@@ -37,7 +38,7 @@ public class DefaultStreamProvider implements Provider, WithRandomSize {
         if (type instanceof ParameterizedType) {
             Type elementType = ((ParameterizedType) type).getActualTypeArguments()[0];
 
-            return (T) Stream.generate(() -> objectFactory.generate(elementType))
+            return (T) Stream.generate(() -> objectFactory.generate(elementType, cycleDetector))
                              .limit(getRandomSize(objectFactory, random));
         }
 

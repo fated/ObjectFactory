@@ -2,6 +2,7 @@ package com.amazon.df.object.provider;
 
 import com.amazon.df.object.ObjectCreationException;
 import com.amazon.df.object.ObjectFactory;
+import com.amazon.df.object.cycle.CycleDetector;
 import com.amazon.df.object.util.Inspector;
 
 import lombok.AllArgsConstructor;
@@ -25,7 +26,7 @@ public class DefaultCollectionProvider implements Provider, WithRandomSize, With
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T get(Type type) {
+    public <T> T get(Type type, CycleDetector cycleDetector) {
         if (type instanceof Class) {
             return (T) createCollection((Class<Collection>) type, 0);
         }
@@ -39,7 +40,7 @@ public class DefaultCollectionProvider implements Provider, WithRandomSize, With
 
             Type component = parameterizedType.getActualTypeArguments()[0];
             for (int i = 0; i < length; ++i) {
-                collection.add(objectFactory.generate(component));
+                collection.add(objectFactory.generate(component, cycleDetector));
             }
 
             return (T) collection;

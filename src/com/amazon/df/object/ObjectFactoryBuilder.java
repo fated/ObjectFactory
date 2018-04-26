@@ -7,6 +7,7 @@ import com.amazon.df.object.provider.DefaultAbstractProvider;
 import com.amazon.df.object.provider.DefaultArrayProvider;
 import com.amazon.df.object.provider.DefaultCollectionProvider;
 import com.amazon.df.object.provider.DefaultEnumProvider;
+import com.amazon.df.object.provider.DefaultFutureProvider;
 import com.amazon.df.object.provider.DefaultInterfaceProvider;
 import com.amazon.df.object.provider.DefaultMapProvider;
 import com.amazon.df.object.provider.DefaultOptionalProvider;
@@ -62,8 +63,9 @@ public final class ObjectFactoryBuilder {
             (f, r) -> new DefaultArrayProvider(f, r),
             (f, r) -> new DefaultCollectionProvider(f, r),
             (f, r) -> new DefaultMapProvider(f, r),
-            (f, r) -> new DefaultOptionalProvider(f),
             (f, r) -> new DefaultStreamProvider(f, r),
+            (f, r) -> new DefaultOptionalProvider(f),
+            (f, r) -> new DefaultFutureProvider(f),
             (f, r) -> new DefaultInterfaceProvider(f),
             (f, r) -> new DefaultAbstractProvider(f)
         ));

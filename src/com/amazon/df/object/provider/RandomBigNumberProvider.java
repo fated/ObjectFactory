@@ -38,17 +38,32 @@ public class RandomBigNumberProvider implements Provider {
 
     private final Random random;
 
+    /**
+     * Get random big number.
+     *
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings("unchecked")
     public <T> T get(Type type) {
         return (T) FUNCTIONS.get(type).apply(random);
     }
 
+    /**
+     * Get random big number.
+     *
+     * {@inheritDoc}
+     */
     @Override
     public <T> T get(Type type, CycleDetector cycleDetector) {
         return get(type);
     }
 
+    /**
+     * Recognize big number type.
+     *
+     * {@inheritDoc}
+     */
     @Override
     public boolean recognizes(Type type) {
         return FUNCTIONS.containsKey(type);

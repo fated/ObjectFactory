@@ -61,17 +61,32 @@ public class RandomBufferProvider implements Provider {
 
     private final Random random;
 
+    /**
+     * Get random buffer.
+     *
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings("unchecked")
     public <T> T get(Type type) {
         return (T) FUNCTIONS.get(type).apply(random);
     }
 
+    /**
+     * Get random buffer.
+     *
+     * {@inheritDoc}
+     */
     @Override
     public <T> T get(Type type, CycleDetector cycleDetector) {
         return get(type);
     }
 
+    /**
+     * Recognize buffer type.
+     *
+     * {@inheritDoc}
+     */
     @Override
     public boolean recognizes(Type type) {
         return FUNCTIONS.containsKey(type);

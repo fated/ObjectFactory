@@ -39,17 +39,32 @@ public class RandomPrimitiveProvider implements Provider {
 
     private final Random random;
 
+    /**
+     * Get random primitive value.
+     *
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings("unchecked")
     public <T> T get(Type type) {
         return (T) FUNCTIONS.get(type).apply(random);
     }
 
+    /**
+     * Get random primitive value.
+     *
+     * {@inheritDoc}
+     */
     @Override
     public <T> T get(Type type, CycleDetector cycleDetector) {
         return get(type);
     }
 
+    /**
+     * Recognize primitive type.
+     *
+     * {@inheritDoc}
+     */
     @Override
     public boolean recognizes(Type type) {
         return FUNCTIONS.containsKey(type);

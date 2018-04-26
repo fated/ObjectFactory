@@ -11,6 +11,7 @@ public interface CycleTerminator {
      * Terminates the given cycle, return type must match first and last node types.
      *
      * @param cycle cycle node detected
+     * @param <T> the type of first and last node type
      * @return an instance of the same type of first and last node type, can be null.
      */
     <T> T terminate(CycleNode cycle);

@@ -20,7 +20,6 @@ public class RandomBufferProvider implements Provider {
 
     private static final int MAXIMUM_BYTE_LENGTH = 256;
 
-    // TODO add other buffer types
     private static final Map<Type, Function<Random, Object>> FUNCTIONS = new HashMap<>();
 
     static {

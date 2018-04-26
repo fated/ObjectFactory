@@ -39,7 +39,7 @@ import java.util.function.BiFunction;
  */
 @SuppressWarnings("HiddenField")
 @Getter(AccessLevel.PACKAGE)
-public class ObjectFactoryBuilder {
+public final class ObjectFactoryBuilder {
 
     private static final int DEFAULT_MIN_SIZE = 1;
     private static final int DEFAULT_MAX_SIZE = 10;
@@ -136,7 +136,8 @@ public class ObjectFactoryBuilder {
      * @param providers defined providers to add
      * @return this object factory builder
      */
-    public ObjectFactoryBuilder providers(BiFunction<ObjectFactory, Random, Provider>... providers) {
+    @SafeVarargs
+    public final ObjectFactoryBuilder providers(BiFunction<ObjectFactory, Random, Provider>... providers) {
         this.providers = new ArrayList<>(Arrays.asList(providers));
         return this;
     }
@@ -148,7 +149,8 @@ public class ObjectFactoryBuilder {
      * @param providers defined additional providers to add
      * @return this object factory builder
      */
-    public ObjectFactoryBuilder additionalProvider(BiFunction<ObjectFactory, Random, Provider>... providers) {
+    @SafeVarargs
+    public final ObjectFactoryBuilder additionalProvider(BiFunction<ObjectFactory, Random, Provider>... providers) {
         this.additionalProviders.addAll(Arrays.asList(providers));
         return this;
     }

@@ -31,8 +31,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
 
+/**
+ * Object factory builder to help create {@link ObjectFactory}.
+ */
 @SuppressWarnings("HiddenField")
 @Getter(AccessLevel.PACKAGE)
 public class ObjectFactoryBuilder {
@@ -79,16 +83,26 @@ public class ObjectFactoryBuilder {
     private boolean failOnMissingPrimitiveProvider = DEFAULT_FAIL_ON_MISSING_PRIMITIVE_PROVIDER;
 
     private static final ObjectFactoryBuilder DEFAULT_OBJECT_FACTORY_BUILDER =
-            new ObjectFactoryBuilder().minSize(DEFAULT_MIN_SIZE)
-                                      .maxSize(DEFAULT_MAX_SIZE)
-                                      .terminators(new NullCycleTerminator())
+            new ObjectFactoryBuilder().terminators(new NullCycleTerminator())
                                       .resolvers(new NullResolver())
-                                      .classSpy(new DefaultClassSpy());
+                                      .classSpy(new DefaultClassSpy())
+                                      .random(ThreadLocalRandom.current());
 
+    /**
+     * Get default object factory builder with default config.
+     *
+     * @return a copy of default object factory builder
+     */
     public static ObjectFactoryBuilder getDefaultBuilder() {
         return DEFAULT_OBJECT_FACTORY_BUILDER.copy();
     }
 
+    /**
+     * Get default object factory with specific random instance.
+     *
+     * @param random random instance
+     * @return a created object factory with default builder and specific random
+     */
     public static ObjectFactory getDefaultObjectFactory(Random random) {
         return DEFAULT_OBJECT_FACTORY_BUILDER.copy().random(random).build();
     }
@@ -101,42 +115,77 @@ public class ObjectFactoryBuilder {
         this.additionalProviders = new ArrayList<>();
         this.resolvers = new ArrayList<>();
         this.terminators = new ArrayList<>();
-
         this.providers = new ArrayList<>(DEFAULT_PROVIDERS);
     }
 
+    /**
+     * Add bindings to current builder. Call multi times will add all bindings.
+     *
+     * @param bindings defined bindings to add
+     * @return this object factory builder
+     */
     public ObjectFactoryBuilder bindings(Binding... bindings) {
         this.bindings.addAll(Arrays.asList(bindings));
         return this;
     }
 
     /**
-     * Use with caution! this overwrite default providers.
+     * Use with caution! this overwrite default providers. Use {@link #additionalProvider(BiFunction[])}
+     * to add additional providers.
      *
-     * @param providers providers
-     * @return this builder
+     * @param providers defined providers to add
+     * @return this object factory builder
      */
     public ObjectFactoryBuilder providers(BiFunction<ObjectFactory, Random, Provider>... providers) {
         this.providers = new ArrayList<>(Arrays.asList(providers));
         return this;
     }
 
-    public ObjectFactoryBuilder additionalProvider(BiFunction<ObjectFactory, Random, Provider>... provider) {
-        this.additionalProviders.addAll(Arrays.asList(provider));
+    /**
+     * Add additional providers to current builder. Call multi times will add all providers.
+     * Additional providers will always be put before default providers.
+     *
+     * @param providers defined additional providers to add
+     * @return this object factory builder
+     */
+    public ObjectFactoryBuilder additionalProvider(BiFunction<ObjectFactory, Random, Provider>... providers) {
+        this.additionalProviders.addAll(Arrays.asList(providers));
         return this;
     }
 
+    /**
+     * Add resolvers to current builder. Call multi times will add all resolvers.
+     *
+     * @param resolvers defined resolvers to add
+     * @return this object factory builder
+     */
     public ObjectFactoryBuilder resolvers(Resolver... resolvers) {
         this.resolvers.addAll(Arrays.asList(resolvers));
         return this;
     }
 
+    /**
+     * Add terminators to current builder. Call multi times will add all terminators.
+     *
+     * @param terminators defined terminators to add
+     * @return this object factory builder
+     */
     public ObjectFactoryBuilder terminators(CycleTerminator... terminators) {
         this.terminators.addAll(Arrays.asList(terminators));
         return this;
     }
 
+    /**
+     * Add classSpy to current builder.
+     *
+     * @param classSpy defined classSpy to add
+     * @return this object factory builder
+     * @throws IllegalArgumentException if given class spy is null
+     */
     public ObjectFactoryBuilder classSpy(ClassSpy classSpy) {
+        if (classSpy == null) {
+            throw new IllegalArgumentException("Class spy must be non-null");
+        }
         this.classSpy = classSpy;
         return this;
     }
@@ -145,11 +194,12 @@ public class ObjectFactoryBuilder {
      * Set the min size for generated collection, map, array, stream etc.
      *
      * @param minSize min size
-     * @return this builder
+     * @return this object factory builder
+     * @throws IllegalArgumentException if given min size is less than 0 or greater than current max size
      */
     public ObjectFactoryBuilder minSize(int minSize) {
-        if (minSize < 0) {
-            throw new IllegalArgumentException("Min size must be non-negative");
+        if (minSize < 0 || minSize > this.maxSize) {
+            throw new IllegalArgumentException("Min size must be non-negative and <= max size");
         }
 
         this.minSize = minSize;
@@ -160,23 +210,41 @@ public class ObjectFactoryBuilder {
      * Set the max size for generated collection, map, array, stream etc.
      *
      * @param maxSize max size
-     * @return this builder
+     * @return this object factory builder
+     * @throws IllegalArgumentException if given max size is less than 0 or less than current min size
      */
     public ObjectFactoryBuilder maxSize(int maxSize) {
-        if (maxSize < 0) {
-            throw new IllegalArgumentException("Max size must be non-negative");
+        if (maxSize < 0 || maxSize < this.minSize) {
+            throw new IllegalArgumentException("Max size must be non-negative and >= min size");
         }
 
         this.maxSize = maxSize;
         return this;
     }
 
+    /**
+     * Set the fail-on-missing-primitive-provider flag, will throw exception if set to true.
+     * Otherwise, use the default value for primitive types.
+     *
+     * @param fail fail-on-missing-primitive-provider flag
+     * @return this object factory builder
+     */
     public ObjectFactoryBuilder failOnMissingPrimitiveProvider(boolean fail) {
         failOnMissingPrimitiveProvider = fail;
         return this;
     }
 
+    /**
+     * Add random to current builder.
+     *
+     * @param random defined random to add
+     * @return this object factory builder
+     * @throws IllegalArgumentException if given random is null
+     */
     public ObjectFactoryBuilder random(Random random) {
+        if (random == null) {
+            throw new IllegalArgumentException("Random must be non-null");
+        }
         this.random = random;
         return this;
     }
@@ -196,7 +264,7 @@ public class ObjectFactoryBuilder {
         b.classSpy = classSpy;
         b.random = random;
         b.minSize = minSize;
-        b.maxSize = minSize;
+        b.maxSize = maxSize;
         b.failOnMissingPrimitiveProvider = failOnMissingPrimitiveProvider;
 
         return b;
@@ -206,6 +274,7 @@ public class ObjectFactoryBuilder {
      * Build the configured object factory.
      *
      * @return an instance of object factory
+     * @throws IllegalArgumentException if any invalid values detected
      */
     public ObjectFactory build() {
         if (minSize < 0) {
@@ -221,7 +290,11 @@ public class ObjectFactoryBuilder {
         }
 
         if (random == null) {
-            throw new IllegalArgumentException("Random instance must not be null");
+            throw new IllegalArgumentException("Random instance must be non-null");
+        }
+
+        if (classSpy == null) {
+            throw new IllegalArgumentException("Class Spy instance must be non-null");
         }
 
         return new ObjectFactory(this);

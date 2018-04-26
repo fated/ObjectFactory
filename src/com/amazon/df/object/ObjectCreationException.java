@@ -39,6 +39,12 @@ public class ObjectCreationException extends RuntimeException {
         super(message, cause);
     }
 
+    /**
+     * Set cause for this {@link ObjectCreationException}.
+     *
+     * @param cause the cause, may be <code>null</code>.
+     * @return this exception
+     */
     public ObjectCreationException withCause(final Throwable cause) {
         this.initCause(cause);
         return this;

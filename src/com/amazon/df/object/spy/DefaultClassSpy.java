@@ -28,18 +28,26 @@ public final class DefaultClassSpy implements ClassSpy {
                                       .orElse(null);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Method> findMethods(final Class<?> clazz, final Predicate<Method> methodFilter) {
-        // Gets inherited methods too
+        // Get inherited methods too
         return Arrays.stream(clazz.getMethods())
                      .filter(methodFilter)
                      .collect(Collectors.toList());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Field> findFields(Class<?> clazz, Predicate<Field> fieldFilter) {
         Class<?> curClazz = clazz;
         List<Field> fields = new ArrayList<>();
+
+        // Get inherited fields too
         while (curClazz != Object.class) {
             fields.addAll(Arrays.asList(curClazz.getDeclaredFields()));
             curClazz = curClazz.getSuperclass();

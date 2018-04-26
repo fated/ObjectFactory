@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 /**
- * Finds the constructor and methods for class.
+ * An interface to find the constructor, methods or fields for class.
  */
 public interface ClassSpy {
 

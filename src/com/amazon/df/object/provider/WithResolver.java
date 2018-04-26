@@ -4,6 +4,9 @@ import com.amazon.df.object.ObjectFactory;
 import com.amazon.df.object.resolver.Resolver;
 import com.amazon.df.object.util.Inspector;
 
+/**
+ * An interface provider function to resolve concrete type for an interface or an abstract class.
+ */
 public interface WithResolver {
 
     /**

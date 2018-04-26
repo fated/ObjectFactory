@@ -143,7 +143,7 @@ class ObjectFactoryTests {
                                                           .random(new Random())
                                                           .build();
 
-        assertThrows(IllegalStateException.class, () -> objectFactory.generate(String.class));
+        assertThrows(ObjectCreationException.class, () -> objectFactory.generate(String.class));
 
         assertThrows(IllegalArgumentException.class,
                      () -> objectFactory.generate(TypeBuilder.newInstance(List.class)

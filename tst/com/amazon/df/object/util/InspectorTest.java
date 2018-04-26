@@ -1,11 +1,17 @@
 package com.amazon.df.object.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.util.Date;
 import java.util.List;
 
 class InspectorTest {
@@ -53,8 +59,76 @@ class InspectorTest {
         assertFalse(Inspector.isStatic(finalField));
         assertFalse(Inspector.isTransient(finalField));
         assertFalse(Inspector.isVolatile(finalField));
+    }
 
+    @Test
+    void testExplicitPrimitives() {
         assertTrue(Inspector.isExplicitPrimitive(boolean.class));
+        assertEquals(false, Inspector.getDefaultExplicitPrimitiveValue(boolean.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(Boolean.class));
+        assertEquals(false, Inspector.getDefaultExplicitPrimitiveValue(Boolean.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(byte.class));
+        assertEquals(0, Inspector.getDefaultExplicitPrimitiveValue(byte.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(Byte.class));
+        assertEquals(0, Inspector.getDefaultExplicitPrimitiveValue(Byte.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(char.class));
+        assertEquals('a', Inspector.getDefaultExplicitPrimitiveValue(char.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(Character.class));
+        assertEquals('a', Inspector.getDefaultExplicitPrimitiveValue(Character.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(short.class));
+        assertEquals(0, Inspector.getDefaultExplicitPrimitiveValue(short.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(Short.class));
+        assertEquals(0, Inspector.getDefaultExplicitPrimitiveValue(Short.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(int.class));
+        assertEquals(0, Inspector.getDefaultExplicitPrimitiveValue(int.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(Integer.class));
+        assertEquals(0, Inspector.getDefaultExplicitPrimitiveValue(Integer.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(long.class));
+        assertEquals(0, Inspector.getDefaultExplicitPrimitiveValue(long.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(Long.class));
+        assertEquals(0, Inspector.getDefaultExplicitPrimitiveValue(Long.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(float.class));
+        assertEquals(0, Inspector.getDefaultExplicitPrimitiveValue(float.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(Float.class));
+        assertEquals(0, Inspector.getDefaultExplicitPrimitiveValue(Float.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(double.class));
+        assertEquals(0, Inspector.getDefaultExplicitPrimitiveValue(double.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(Double.class));
+        assertEquals(0, Inspector.getDefaultExplicitPrimitiveValue(Double.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(BigInteger.class));
+        assertEquals(BigInteger.ZERO, Inspector.getDefaultExplicitPrimitiveValue(BigInteger.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(BigDecimal.class));
+        assertEquals(BigDecimal.ZERO, Inspector.getDefaultExplicitPrimitiveValue(BigDecimal.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(String.class));
+        assertEquals("", Inspector.getDefaultExplicitPrimitiveValue(String.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(ByteBuffer.class));
+        assertEquals(ByteBuffer.allocate(0), Inspector.getDefaultExplicitPrimitiveValue(ByteBuffer.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(Date.class));
+        assertNotNull(Inspector.getDefaultExplicitPrimitiveValue(Date.class));
+
+        assertTrue(Inspector.isExplicitPrimitive(Object.class));
+        assertNotNull(Inspector.getDefaultExplicitPrimitiveValue(Object.class));
+
         assertFalse(Inspector.isExplicitPrimitive(List.class));
     }
 

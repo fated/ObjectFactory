@@ -5,10 +5,9 @@ import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A inspector utility to inspect class, methods, fields.
@@ -17,24 +16,31 @@ public final class Inspector {
 
     private Inspector() {}
 
-    private static final Set<Class<?>> EXPLICIT_PRIMITIVES = new HashSet<>();
+    private static final Map<Class<?>, Object> DEFAULT_EXPLICIT_PRIMITIVES_VALUES = new HashMap<>();
 
     static {
-        EXPLICIT_PRIMITIVES.addAll(Arrays.asList(boolean.class, Boolean.class,
-                                                 byte.class, Byte.class,
-                                                 char.class, Character.class,
-                                                 short.class, Short.class,
-                                                 int.class, Integer.class,
-                                                 long.class, Long.class,
-                                                 float.class, Float.class,
-                                                 double.class, Double.class,
-                                                 String.class,
-                                                 ByteBuffer.class,
-                                                 BigDecimal.class,
-                                                 BigInteger.class,
-                                                 Date.class,
-                                                 Object.class
-        ));
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(boolean.class, false);
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(Boolean.class, false);
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(byte.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(Byte.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(char.class, 'a');
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(Character.class, 'a');
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(short.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(Short.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(int.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(Integer.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(long.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(Long.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(float.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(Float.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(double.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(Double.class, 0);
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(String.class, "");
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(ByteBuffer.class, ByteBuffer.allocate(0));
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(BigInteger.class, BigInteger.ZERO);
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(BigDecimal.class, BigDecimal.ZERO);
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(Date.class, new Date());
+        DEFAULT_EXPLICIT_PRIMITIVES_VALUES.put(Object.class, new Object());
     }
 
     /**
@@ -44,7 +50,17 @@ public final class Inspector {
      * @return true if class is explicit primitive, otherwise false
      */
     public static boolean isExplicitPrimitive(Class<?> clazz) {
-        return EXPLICIT_PRIMITIVES.contains(clazz);
+        return DEFAULT_EXPLICIT_PRIMITIVES_VALUES.keySet().contains(clazz);
+    }
+
+    /**
+     * Get default explicit primitive value for class.
+     *
+     * @param clazz explicit primitive class
+     * @return default value configured in this class
+     */
+    public static Object getDefaultExplicitPrimitiveValue(Class<?> clazz) {
+        return DEFAULT_EXPLICIT_PRIMITIVES_VALUES.get(clazz);
     }
 
     /**
@@ -56,6 +72,7 @@ public final class Inspector {
     public static boolean isAbstract(Class<?> clazz) {
         return Modifier.isAbstract(clazz.getModifiers());
     }
+
     /**
      * Check if a class is an interface or not. Notice that every interface is implicitly abstract.
      *
@@ -117,5 +134,4 @@ public final class Inspector {
     public static boolean isFinal(Member member) {
         return Modifier.isFinal(member.getModifiers());
     }
-
 }

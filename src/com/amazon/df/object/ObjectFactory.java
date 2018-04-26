@@ -14,9 +14,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,35 +31,10 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class ObjectFactory {
 
-    private static final Map<Class<?>, Object> DEFAULT_EXPLICIT_PRIMITIVES = new HashMap<>();
-
-    static {
-        DEFAULT_EXPLICIT_PRIMITIVES.put(boolean.class, false);
-        DEFAULT_EXPLICIT_PRIMITIVES.put(Boolean.class, false);
-        DEFAULT_EXPLICIT_PRIMITIVES.put(byte.class, 0);
-        DEFAULT_EXPLICIT_PRIMITIVES.put(Byte.class, 0);
-        DEFAULT_EXPLICIT_PRIMITIVES.put(char.class, 'a');
-        DEFAULT_EXPLICIT_PRIMITIVES.put(Character.class, 'a');
-        DEFAULT_EXPLICIT_PRIMITIVES.put(short.class, 0);
-        DEFAULT_EXPLICIT_PRIMITIVES.put(Short.class, 0);
-        DEFAULT_EXPLICIT_PRIMITIVES.put(int.class, 0);
-        DEFAULT_EXPLICIT_PRIMITIVES.put(Integer.class, 0);
-        DEFAULT_EXPLICIT_PRIMITIVES.put(long.class, 0);
-        DEFAULT_EXPLICIT_PRIMITIVES.put(Long.class, 0);
-        DEFAULT_EXPLICIT_PRIMITIVES.put(float.class, 0);
-        DEFAULT_EXPLICIT_PRIMITIVES.put(Float.class, 0);
-        DEFAULT_EXPLICIT_PRIMITIVES.put(double.class, 0);
-        DEFAULT_EXPLICIT_PRIMITIVES.put(Double.class, 0);
-        DEFAULT_EXPLICIT_PRIMITIVES.put(ByteBuffer.class, ByteBuffer.allocate(0));
-        DEFAULT_EXPLICIT_PRIMITIVES.put(String.class, "");
-        DEFAULT_EXPLICIT_PRIMITIVES.put(Date.class, new Date());
-        DEFAULT_EXPLICIT_PRIMITIVES.put(Object.class, new Object());
-    }
-
-    // type -> { field type -> provider }
+    // type -> [ field type -> provider ]
     private final Map<Type, Map<Type, Provider>> fieldTypeBindings = new HashMap<>();
 
-    // type -> { field name -> provider }
+    // type -> [ field name -> provider ]
     private final Map<Type, Map<String, Provider>> fieldNameBindings = new HashMap<>();
 
     // field type -> provider
@@ -154,7 +127,8 @@ public class ObjectFactory {
                     if (failOnMissingPrimitiveProvider) {
                         throw new ObjectCreationException("Provider not found for primitive type %s", clazz);
                     }
-                    return (T) DEFAULT_EXPLICIT_PRIMITIVES.get(clazz);
+
+                    return (T) Inspector.getDefaultExplicitPrimitiveValue(clazz);
                 }
 
                 return generateObject(clazz, cycleDetector);
@@ -367,50 +341,86 @@ public class ObjectFactory {
      * Process defined binding list to detailed binding map.
      *
      * @param bindings configured provider bindings
-     * @throws IllegalArgumentException if multiple bindings provide for same combination,
-     *         or unrecognized binding type found
+     * @throws IllegalArgumentException if unrecognized binding type found
      */
     private void processBindings(List<Binding> bindings) {
         if (bindings == null || bindings.isEmpty()) {
             return;
         }
+
         for (Binding binding : bindings) {
             if (binding instanceof Binding.FieldNameBinding) {
-                Binding.FieldNameBinding fieldNameBinding = (Binding.FieldNameBinding) binding;
-                Map<String, Provider> nameBindings =
-                        fieldNameBindings.getOrDefault(fieldNameBinding.getContainer(), new HashMap<>());
-                if (nameBindings.containsKey(fieldNameBinding.getFieldName())) {
-                    throw new IllegalArgumentException("Cannot provide multiple bindings for the same field name");
-                }
-                nameBindings.put(fieldNameBinding.getFieldName(), fieldNameBinding.getProvider());
-                fieldNameBindings.putIfAbsent(fieldNameBinding.getContainer(), nameBindings);
+                processFieldNameBinding((Binding.FieldNameBinding) binding);
             } else if (binding instanceof Binding.FieldTypeBinding) {
-                Binding.FieldTypeBinding fieldTypeBinding = (Binding.FieldTypeBinding) binding;
-                Map<Type, Provider> typeBindings =
-                        fieldTypeBindings.getOrDefault(fieldTypeBinding.getContainer(), new HashMap<>());
-                if (typeBindings.containsKey(fieldTypeBinding.getFieldType())) {
-                    throw new IllegalArgumentException("Cannot provide multiple bindings for the same field type");
-                }
-                typeBindings.put(fieldTypeBinding.getFieldType(), fieldTypeBinding.getProvider());
-                fieldTypeBindings.putIfAbsent(fieldTypeBinding.getContainer(), typeBindings);
+                processFieldTypeBinding((Binding.FieldTypeBinding) binding);
             } else if (binding instanceof Binding.GlobalFieldTypeBinding) {
-                Binding.GlobalFieldTypeBinding globalFieldTypeBinding = (Binding.GlobalFieldTypeBinding) binding;
-                if (globalTypeBindings.containsKey(globalFieldTypeBinding.getFieldType())) {
-                    throw new IllegalArgumentException(
-                            "Cannot provide multiple global bindings for the same field type");
-                }
-                globalTypeBindings.put(globalFieldTypeBinding.getFieldType(), globalFieldTypeBinding.getProvider());
+                processGlobalFieldTypeBinding((Binding.GlobalFieldTypeBinding) binding);
             } else if (binding instanceof Binding.GlobalFieldNameBinding) {
-                Binding.GlobalFieldNameBinding globalFieldNameBinding = (Binding.GlobalFieldNameBinding) binding;
-                if (globalNameBindings.containsKey(globalFieldNameBinding.getFieldName())) {
-                    throw new IllegalArgumentException(
-                            "Cannot provide multiple global bindings for the same field name");
-                }
-                globalNameBindings.put(globalFieldNameBinding.getFieldName(), globalFieldNameBinding.getProvider());
+                processGlobalFieldNameBinding((Binding.GlobalFieldNameBinding) binding);
             } else {
                 throw new IllegalArgumentException(String.format("Unrecognized binding type %s", binding.getClass()));
             }
         }
+    }
+
+    /**
+     * Process local field name binding to detailed binding map.
+     *
+     * @param fieldNameBinding local field name binding
+     * @throws IllegalArgumentException if multiple bindings provide for same combination
+     */
+    private void processFieldNameBinding(Binding.FieldNameBinding fieldNameBinding) {
+        Map<String, Provider> nameBindings =
+                fieldNameBindings.getOrDefault(fieldNameBinding.getContainer(), new HashMap<>());
+        if (nameBindings.containsKey(fieldNameBinding.getFieldName())) {
+            throw new IllegalArgumentException("Cannot provide multiple bindings for the same field name");
+        }
+        nameBindings.put(fieldNameBinding.getFieldName(), fieldNameBinding.getProvider());
+        fieldNameBindings.putIfAbsent(fieldNameBinding.getContainer(), nameBindings);
+    }
+
+    /**
+     * Process local field type binding to detailed binding map.
+     *
+     * @param fieldTypeBinding local field type binding
+     * @throws IllegalArgumentException if multiple bindings provide for same combination
+     */
+    private void processFieldTypeBinding(Binding.FieldTypeBinding fieldTypeBinding) {
+        Map<Type, Provider> typeBindings =
+                fieldTypeBindings.getOrDefault(fieldTypeBinding.getContainer(), new HashMap<>());
+        if (typeBindings.containsKey(fieldTypeBinding.getFieldType())) {
+            throw new IllegalArgumentException("Cannot provide multiple bindings for the same field type");
+        }
+        typeBindings.put(fieldTypeBinding.getFieldType(), fieldTypeBinding.getProvider());
+        fieldTypeBindings.putIfAbsent(fieldTypeBinding.getContainer(), typeBindings);
+    }
+
+    /**
+     * Process global field type binding to detailed binding map.
+     *
+     * @param globalFieldTypeBinding global field type binding
+     * @throws IllegalArgumentException if multiple bindings provide for same combination
+     */
+    private void processGlobalFieldTypeBinding(Binding.GlobalFieldTypeBinding globalFieldTypeBinding) {
+        if (globalTypeBindings.containsKey(globalFieldTypeBinding.getFieldType())) {
+            throw new IllegalArgumentException(
+                    "Cannot provide multiple global bindings for the same field type");
+        }
+        globalTypeBindings.put(globalFieldTypeBinding.getFieldType(), globalFieldTypeBinding.getProvider());
+    }
+
+    /**
+     * Process global field name binding to detailed binding map.
+     *
+     * @param globalFieldNameBinding global field name binding
+     * @throws IllegalArgumentException if multiple bindings provide for same combination
+     */
+    private void processGlobalFieldNameBinding(Binding.GlobalFieldNameBinding globalFieldNameBinding) {
+        if (globalNameBindings.containsKey(globalFieldNameBinding.getFieldName())) {
+            throw new IllegalArgumentException(
+                    "Cannot provide multiple global bindings for the same field name");
+        }
+        globalNameBindings.put(globalFieldNameBinding.getFieldName(), globalFieldNameBinding.getProvider());
     }
 
 }

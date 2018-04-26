@@ -12,6 +12,7 @@ import com.amazon.df.object.provider.DefaultInterfaceProvider;
 import com.amazon.df.object.provider.DefaultMapProvider;
 import com.amazon.df.object.provider.DefaultOptionalProvider;
 import com.amazon.df.object.provider.DefaultStreamProvider;
+import com.amazon.df.object.provider.DefaultTemporalProvider;
 import com.amazon.df.object.provider.DefaultTypesProvider;
 import com.amazon.df.object.provider.Provider;
 import com.amazon.df.object.provider.RandomBigNumberProvider;
@@ -59,6 +60,7 @@ public final class ObjectFactoryBuilder {
             (f, r) -> new RandomDateProvider(r),
             (f, r) -> new RandomStringProvider(),
             (f, r) -> new RandomBufferProvider(r),
+            (f, r) -> new DefaultTemporalProvider(f),
             (f, r) -> new DefaultEnumProvider(r),
             (f, r) -> new DefaultArrayProvider(f, r),
             (f, r) -> new DefaultCollectionProvider(f, r),

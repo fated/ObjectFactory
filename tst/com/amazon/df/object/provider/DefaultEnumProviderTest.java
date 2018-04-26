@@ -18,6 +18,7 @@ class DefaultEnumProviderTest implements ProviderTestBase {
     void get() {
         assertNull(provider.get(EmptyTestEnum.class));
         assertNotNull(provider.get(TestEnum.class));
+        assertNotNull(provider.get(TestEnum.class, null));
         assertTrue(Arrays.asList(TestEnum.values()).contains(provider.get(TestEnum.class)));
 
         assertThrows(RuntimeException.class, () -> provider.get(String.class));

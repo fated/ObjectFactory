@@ -4,7 +4,9 @@ import com.amazon.df.object.provider.Provider;
 
 import java.lang.reflect.Type;
 
-public abstract class Bindings {
+public final class Bindings {
+
+    private Bindings() {}
 
     /**
      * Create a global field type binding.

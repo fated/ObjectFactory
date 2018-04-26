@@ -22,6 +22,7 @@ class RandomBufferProviderTest implements ProviderTestBase {
     @Test
     void get() {
         assertNotNull(((ByteBuffer) provider.get(ByteBuffer.class)).get());
+        assertNotNull(((ByteBuffer) provider.get(ByteBuffer.class, null)).get());
         assertNotNull(((CharBuffer) provider.get(CharBuffer.class)).get());
         assertNotNull(((ShortBuffer) provider.get(ShortBuffer.class)).get());
         assertNotNull(((IntBuffer) provider.get(IntBuffer.class)).get());

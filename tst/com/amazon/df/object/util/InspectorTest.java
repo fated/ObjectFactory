@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -130,6 +131,14 @@ class InspectorTest {
         assertNotNull(Inspector.getDefaultExplicitPrimitiveValue(Object.class));
 
         assertFalse(Inspector.isExplicitPrimitive(List.class));
+    }
+
+    @Test
+    void testPrivateConstructor() throws Exception {
+        Constructor<?> constructor = Inspector.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+
+        assertNotNull(constructor.newInstance());
     }
 
     static class StaticClass {}

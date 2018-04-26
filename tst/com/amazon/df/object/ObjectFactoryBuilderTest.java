@@ -87,7 +87,9 @@ class ObjectFactoryBuilderTest {
 
         classSpy.set(builder, new DefaultClassSpy());
 
-        assertNotNull(builder.build());
+        ObjectFactory factory = builder.build();
+        assertNotNull(factory);
+        assertNotNull(factory.getRandom());
     }
 
 }

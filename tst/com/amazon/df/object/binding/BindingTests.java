@@ -1,14 +1,18 @@
 package com.amazon.df.object.binding;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.amazon.df.object.ObjectFactory;
 import com.amazon.df.object.ObjectFactoryBuilder;
 import com.amazon.df.object.cycle.CycleDetector;
+import com.amazon.df.object.provider.DeterministicProvider;
 import com.amazon.df.object.provider.Provider;
 
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.Random;
 
@@ -50,6 +54,12 @@ final class BindingTests {
         assertEquals(new Integer(0), a.cInteger);
         assertEquals(2, a.b.aInt);
         assertEquals(2, a.b.bInt);
+
+        assertThrows(IllegalArgumentException.class,
+                     () -> ObjectFactoryBuilder.getDefaultBuilder()
+                                               .bindings(Bindings.bind(int.class, new DeterministicProvider()),
+                                                         Bindings.bind(int.class, new DeterministicProvider()))
+                                               .build());
     }
 
     @Test
@@ -76,6 +86,12 @@ final class BindingTests {
         assertEquals(new Integer(0), a.cInteger);
         assertEquals(0, a.b.aInt);
         assertEquals(0, a.b.bInt);
+
+        assertThrows(IllegalArgumentException.class,
+                     () -> ObjectFactoryBuilder.getDefaultBuilder()
+                                               .bindings(Bindings.bind(A.class, "aInt", new DeterministicProvider()),
+                                                         Bindings.bind(A.class, "aInt", new DeterministicProvider()))
+                                               .build());
     }
 
     @Test
@@ -102,6 +118,12 @@ final class BindingTests {
         assertEquals(new Integer(0), a.cInteger);
         assertEquals(2, a.b.aInt);
         assertEquals(2, a.b.bInt);
+
+        assertThrows(IllegalArgumentException.class,
+                     () -> ObjectFactoryBuilder.getDefaultBuilder()
+                                               .bindings(Bindings.bind(B.class, int.class, new DeterministicProvider()),
+                                                         Bindings.bind(B.class, int.class, new DeterministicProvider()))
+                                               .build());
     }
 
     @Test
@@ -128,6 +150,28 @@ final class BindingTests {
         assertEquals(new Integer(0), a.cInteger);
         assertEquals(2, a.b.aInt);
         assertEquals(0, a.b.bInt);
+
+        assertThrows(IllegalArgumentException.class,
+                     () -> ObjectFactoryBuilder.getDefaultBuilder()
+                                               .bindings(Bindings.bind("aInt", new DeterministicProvider()),
+                                                         Bindings.bind("aInt", new DeterministicProvider()))
+                                               .build());
+    }
+
+    @Test
+    void testUnknownBinding() {
+        assertThrows(IllegalArgumentException.class,
+                     () -> ObjectFactoryBuilder.getDefaultBuilder()
+                                               .bindings(new Binding() {})
+                                               .build());
+    }
+
+    @Test
+    void testPrivateConstructor() throws Exception {
+        Constructor<?> constructor = Bindings.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+
+        assertNotNull(constructor.newInstance());
     }
 
 }

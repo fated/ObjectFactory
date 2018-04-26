@@ -19,6 +19,7 @@ class RandomBigNumberProviderTest implements ProviderTestBase {
     @Test
     void get() {
         assertNotNull(provider.get(BigInteger.class));
+        assertNotNull(provider.get(BigInteger.class, null));
         assertNotNull(provider.get(BigDecimal.class));
         assertThrows(NullPointerException.class, () -> provider.get(String.class));
 

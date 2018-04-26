@@ -5,18 +5,27 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.amazon.arsenal.reflect.TypeBuilder;
+import com.amazon.df.object.binding.Bindings;
+import com.amazon.df.object.cycle.CycleDetector;
+import com.amazon.df.object.cycle.CycleTerminator;
 import com.amazon.df.object.provider.DeterministicProvider;
 import com.amazon.df.object.provider.Provider;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -166,6 +175,91 @@ class ObjectFactoryTests {
         assertNull(a.b.c.a);
     }
 
+    @Test
+    void testExceptionalCases() throws Exception {
+        ObjectFactory objectFactory =
+                ObjectFactoryBuilder.getDefaultBuilder()
+                                    .bindings(Bindings.bind("something", new Provider() {
+                                        @Override
+                                        public <T> T get(Type type, CycleDetector cycleDetector) {
+                                            throw new UnsupportedOperationException();
+                                        }
+
+                                        @Override
+                                        public boolean recognizes(Type type) {
+                                            return true;
+                                        }
+                                    }))
+                                    .build();
+
+        Field terminators = ObjectFactory.class.getDeclaredField("terminators");
+        terminators.setAccessible(true);
+        terminators.set(objectFactory, Collections.singletonList(new CycleTerminator() {
+            @Override
+            public <T> T terminate(CycleDetector.CycleNode cycle) {
+                return null;
+            }
+
+            @Override
+            public boolean canTerminate(CycleDetector.CycleNode cycle) {
+                return false;
+            }
+        }));
+
+        Method getTerminator = ObjectFactory.class.getDeclaredMethod("getTerminator", CycleDetector.CycleNode.class);
+        getTerminator.setAccessible(true);
+
+        assertThrows(IllegalStateException.class, () -> {
+            try {
+                getTerminator.invoke(objectFactory, (CycleDetector.CycleNode) null);
+            } catch (InvocationTargetException e) {
+                throw e.getCause();
+            }
+        });
+
+        Method processBindings = ObjectFactory.class.getDeclaredMethod("processBindings", List.class);
+        processBindings.setAccessible(true);
+
+        try {
+            processBindings.invoke(objectFactory, (List) null);
+        } catch (Exception e) {
+            fail("should not throws");
+        }
+
+        Method newInstance = ObjectFactory.class.getDeclaredMethod("newInstance", Class.class, CycleDetector.class);
+        newInstance.setAccessible(true);
+
+        assertThrows(ObjectCreationException.class, () -> {
+            try {
+                newInstance.invoke(objectFactory, ClassThatThrows.class, null);
+            } catch (InvocationTargetException e) {
+                throw e.getCause();
+            }
+        });
+
+        Method populateFieldsBySetters = ObjectFactory.class.getDeclaredMethod("populateFieldsBySetters",
+                                                                               Class.class, CycleDetector.class, Object.class);
+        populateFieldsBySetters.setAccessible(true);
+
+        try {
+            populateFieldsBySetters.invoke(objectFactory, ClassThatThrows.class, null, new ClassThatThrows("test"));
+        } catch (Exception e) {
+            fail("should not throws");
+        }
+
+        Method populateFields = ObjectFactory.class.getDeclaredMethod("populateFields",
+                                                                      Class.class, CycleDetector.class, Object.class, List.class);
+        populateFields.setAccessible(true);
+
+        assertThrows(ObjectCreationException.class, () -> {
+            try {
+                populateFields.invoke(objectFactory, ClassThatThrows.class, null, new ClassThatThrows("test"), new ArrayList<>());
+            } catch (InvocationTargetException e) {
+                throw e.getCause();
+            }
+        });
+    }
+
     //
     // Helpers
     //
@@ -220,5 +314,20 @@ class ObjectFactoryTests {
     }
     class E {
         D d;
+    }
+}
+
+class ClassThatThrows {
+
+    private String something;
+
+    public ClassThatThrows() {
+        throw new UnsupportedOperationException();
+    }
+
+    public ClassThatThrows(String something) {}
+
+    public void setSomething(String something) {
+        throw new UnsupportedOperationException();
     }
 }

@@ -40,7 +40,7 @@ class RandomDateProviderTest implements ProviderTestBase {
         assertTrue(zdt.getYear() >= 1900 && zdt.getYear() <= 2100);
 
         Mockito.doReturn(Long.MAX_VALUE).when(random).nextLong();
-        date = newProvider.get(Date.class);
+        date = newProvider.get(Date.class, null);
 
         zdt = date.toInstant().atZone(ZoneId.of("UTC"));
 

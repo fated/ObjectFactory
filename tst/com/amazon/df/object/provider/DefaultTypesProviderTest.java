@@ -17,6 +17,7 @@ class DefaultTypesProviderTest {
     @Test
     void get() {
         assertNull(provider.get(Mockito.mock(TypeVariable.class)));
+        assertNull(provider.get(Mockito.mock(TypeVariable.class), null));
         assertNull(provider.get(Mockito.mock(WildcardType.class)));
         assertNull(provider.get(String.class));
     }

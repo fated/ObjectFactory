@@ -25,4 +25,11 @@ public interface ProviderTestBase {
         return DEFAULT_OBJECT_FACTORY;
     }
 
+    default ObjectFactoryBuilder getObjectFactoryBuilder() {
+        return ObjectFactoryBuilder.getDefaultBuilder()
+                                   .minSize(DEFAULT_SIZE)
+                                   .maxSize(DEFAULT_SIZE)
+                                   .random(DEFAULT_RANDOM);
+    }
+
 }

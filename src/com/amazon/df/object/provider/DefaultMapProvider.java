@@ -52,7 +52,6 @@ public class DefaultMapProvider implements Provider, WithRandomSize {
             if (Map.class.isAssignableFrom(clazz)) {
                 map = new HashMap<>(length);
             } else {
-                // TODO: add resolve concrete type
                 throw new IllegalArgumentException("Unknown type: " + clazz);
             }
         } else {

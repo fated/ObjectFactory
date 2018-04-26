@@ -18,7 +18,7 @@ import java.util.Random;
 import java.util.Set;
 
 @AllArgsConstructor
-public class DefaultCollectionProvider implements Provider, WithRandomSize {
+public class DefaultCollectionProvider implements Provider, WithRandomSize, WithResolver {
 
     private final ObjectFactory objectFactory;
     private final Random random;
@@ -49,28 +49,30 @@ public class DefaultCollectionProvider implements Provider, WithRandomSize {
     }
 
     private Collection<?> createCollection(Class<?> clazz, int length) {
-        Collection<?> collection;
+        Class<?> concreteClazz = clazz;
 
         if (Inspector.isInterface(clazz) || Inspector.isAbstract(clazz)) {
             if (Set.class.isAssignableFrom(clazz)) {
-                collection = new HashSet<>(length);
+                return new HashSet<>(length);
             } else if (List.class.isAssignableFrom(clazz)) {
-                collection = new ArrayList<>(length);
+                return new ArrayList<>(length);
             } else if (Queue.class.isAssignableFrom(clazz)) {
-                collection = new ArrayDeque<>(length);
+                return new ArrayDeque<>(length);
             } else {
-                // TODO: add resolve concrete type
-                throw new IllegalArgumentException("Unknown type: " + clazz);
-            }
-        } else {
-            try {
-                collection = (Collection<?>) clazz.newInstance();
-            } catch (Exception e) {
-                throw new ObjectCreationException("Fail to create new instance for type %s", clazz).withCause(e);
+                concreteClazz = resolveConcreteType(objectFactory, clazz);
+                if (concreteClazz == null) {
+                    throw new IllegalArgumentException("Unknown type: " + clazz);
+                }
             }
         }
 
-        return collection;
+        try {
+            return (Collection<?>) concreteClazz.newInstance();
+        } catch (Exception e) {
+            throw new ObjectCreationException("Fail to create new instance for type %s and concrete type %s",
+                                              clazz, concreteClazz)
+                          .withCause(e);
+        }
     }
 
     @Override

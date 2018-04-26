@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.amazon.arsenal.reflect.TypeBuilder;
 import com.amazon.df.object.ObjectCreationException;
+import com.amazon.df.object.resolver.ClasspathResolver;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -20,6 +21,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -27,7 +29,11 @@ import java.util.Set;
 
 class DefaultCollectionProviderTest implements ProviderTestBase {
 
-    private DefaultCollectionProvider provider = new DefaultCollectionProvider(getObjectFactory(), getRandom());
+    private DefaultCollectionProvider provider =
+            new DefaultCollectionProvider(getObjectFactoryBuilder()
+                                                  .resolvers(new ClasspathResolver(ConcreteCollection.class.getClassLoader()))
+                                                  .build(),
+                                          getRandom());
 
     @Test
     void get() {
@@ -70,7 +76,16 @@ class DefaultCollectionProviderTest implements ProviderTestBase {
         Type genericUnknownCollectionType = TypeBuilder.newInstance(UnknownCollection.class)
                                                        .build();
 
-        assertThrows(IllegalArgumentException.class, () -> provider.get(genericUnknownCollectionType));
+        UnknownCollection unknownCollection = provider.get(genericUnknownCollectionType);
+
+        assertAll(() -> assertNotNull(unknownCollection),
+                  () -> assertFalse(unknownCollection.isEmpty()),
+                  () -> assertTrue(unknownCollection instanceof ConcreteCollection));
+
+        Type genericUnknownCollection2Type = TypeBuilder.newInstance(UnknownCollection2.class)
+                                                        .build();
+
+        assertThrows(IllegalArgumentException.class, () -> provider.get(genericUnknownCollection2Type));
 
         Type genericPrivateConstructorListType = TypeBuilder.newInstance(PrivateConstructorList.class)
                                                             .build();
@@ -78,7 +93,7 @@ class DefaultCollectionProviderTest implements ProviderTestBase {
         assertThrows(ObjectCreationException.class, () -> provider.get(genericPrivateConstructorListType));
 
         Type genericThrowsConstructorListType = TypeBuilder.newInstance(ThrowsConstructorList.class)
-                                                            .build();
+                                                           .build();
 
         assertThrows(ObjectCreationException.class, () -> provider.get(genericThrowsConstructorListType));
 
@@ -94,6 +109,76 @@ class DefaultCollectionProviderTest implements ProviderTestBase {
     }
 
     interface UnknownCollection<E> extends Collection<E> {}
+
+    interface UnknownCollection2<E> extends Collection<E> {}
+
+    static class ConcreteCollection<E> implements UnknownCollection<E> {
+
+        @Override
+        public int size() {
+            return 0;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return false;
+        }
+
+        @Override
+        public Iterator<E> iterator() {
+            return null;
+        }
+
+        @Override
+        public Object[] toArray() {
+            return new Object[0];
+        }
+
+        @Override
+        public <T> T[] toArray(T[] a) {
+            return null;
+        }
+
+        @Override
+        public boolean add(E e) {
+            return false;
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            return false;
+        }
+
+        @Override
+        public boolean containsAll(Collection<?> c) {
+            return false;
+        }
+
+        @Override
+        public boolean addAll(Collection<? extends E> c) {
+            return false;
+        }
+
+        @Override
+        public boolean removeAll(Collection<?> c) {
+            return false;
+        }
+
+        @Override
+        public boolean retainAll(Collection<?> c) {
+            return false;
+        }
+
+        @Override
+        public void clear() {
+
+        }
+    }
 
     private class PrivateConstructorList<E> extends ArrayList<E> {
 

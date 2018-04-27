@@ -13,12 +13,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+/**
+ * Default map provider, generate map with random keys and values.
+ */
 @AllArgsConstructor
 public class DefaultMapProvider implements Provider, WithRandomSize {
 
     private final ObjectFactory objectFactory;
     private final Random random;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings("unchecked")
     public <T> T get(Type type, CycleDetector cycleDetector) {
@@ -46,6 +52,14 @@ public class DefaultMapProvider implements Provider, WithRandomSize {
         throw new IllegalArgumentException("Unknown type: " + type);
     }
 
+    /**
+     * Create map of given type with specific capacity, if given map type is interface or abstract,
+     * use the default {@link HashMap} as the concrete type.
+     *
+     * @param clazz the map type
+     * @param length the capacity of the map
+     * @return a created empty map
+     */
     private Map<?, ?> createMap(Class<?> clazz, int length) {
         Map<?, ?> map;
 
@@ -66,6 +80,9 @@ public class DefaultMapProvider implements Provider, WithRandomSize {
         return map;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean recognizes(Type type) {
         if (type == null) {

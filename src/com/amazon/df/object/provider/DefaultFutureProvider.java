@@ -15,9 +15,15 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RecursiveTask;
 
+/**
+ * Default {@link Future} provider, generate a completed future with random value as result.
+ */
 @AllArgsConstructor
 public class DefaultFutureProvider implements Provider {
 
+    /**
+     * Only support the following common future types.
+     */
     private static final Set<Class<? extends Future>> SUPPORTED_FUTURE_CLASSES = new HashSet<>();
 
     static {
@@ -29,6 +35,9 @@ public class DefaultFutureProvider implements Provider {
 
     private final ObjectFactory objectFactory;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public <T> T get(Type type, CycleDetector cycleDetector) {
         if (type instanceof Class) {
@@ -51,6 +60,14 @@ public class DefaultFutureProvider implements Provider {
         throw new IllegalArgumentException("Unknown type: " + type);
     }
 
+    /**
+     * Create a completed future object with given value as result.
+     *
+     * @param type the type of future
+     * @param value the given value as result
+     * @param <T> the type of future
+     * @return a completed future object
+     */
     @SuppressWarnings("unchecked")
     private <T> T createFuture(Type type, Object value) {
         if (CompletableFuture.class.equals(type) || Future.class.equals(type)) {
@@ -73,6 +90,9 @@ public class DefaultFutureProvider implements Provider {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean recognizes(Type type) {
         if (type == null) {

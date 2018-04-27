@@ -12,11 +12,17 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 
+/**
+ * Default optional provider, generate an optional object with random inside value.
+ */
 @AllArgsConstructor
 public class DefaultOptionalProvider implements Provider {
 
     private final ObjectFactory objectFactory;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings("unchecked")
     public <T> T get(Type type, CycleDetector cycleDetector) {
@@ -47,6 +53,9 @@ public class DefaultOptionalProvider implements Provider {
         throw new IllegalArgumentException("Unknown type: " + type);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean recognizes(Type type) {
         if (type == null) {

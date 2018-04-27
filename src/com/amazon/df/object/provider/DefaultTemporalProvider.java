@@ -17,9 +17,16 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Default {@link Temporal} provider, aka, Java 8 Time, generate random temporal based on
+ * {@link Date} generation logic, it actually convert a date object into a temporal.
+ */
 @AllArgsConstructor
 public class DefaultTemporalProvider implements Provider {
 
+    /**
+     * Only support the following temporal types.
+     */
     private static final Set<Class<? extends Temporal>> SUPPORTED_TEMPORAL_CLASSES = new HashSet<>();
 
     static {
@@ -32,6 +39,9 @@ public class DefaultTemporalProvider implements Provider {
 
     private final ObjectFactory objectFactory;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings("unchecked")
     public <T> T get(Type type, CycleDetector cycleDetector) {
@@ -63,6 +73,9 @@ public class DefaultTemporalProvider implements Provider {
         return date.toInstant();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean recognizes(Type type) {
         if (type == null) {

@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.function.Function;
 
+/**
+ * Default primitive provider, generate random values with given random instance.
+ */
 @AllArgsConstructor
 public class RandomPrimitiveProvider implements Provider {
 

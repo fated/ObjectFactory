@@ -12,6 +12,10 @@ import java.util.Map;
 import java.util.Random;
 import java.util.function.Function;
 
+/**
+ * Default big number provider, generate big integer or big decimal with random bit length,
+ * random scale, and random sign.
+ */
 @AllArgsConstructor
 public class RandomBigNumberProvider implements Provider {
 

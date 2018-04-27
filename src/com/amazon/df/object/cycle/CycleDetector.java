@@ -1,9 +1,14 @@
 package com.amazon.df.object.cycle;
 
+import lombok.Getter;
+
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Cycle detector to find dependency cycle while generating object.
+ */
 public final class CycleDetector {
 
     private Map<Type, CycleNode> index = new HashMap<>();
@@ -11,8 +16,15 @@ public final class CycleDetector {
     private CycleNode head;
     private CycleNode tail;
 
+    /**
+     * Inner class represent a dependency node in the cycle graph.
+     */
+    @Getter
     public static final class CycleNode {
 
+        /**
+         * The type of this node.
+         */
         private final Type type;
 
         private CycleNode next;
@@ -49,13 +61,6 @@ public final class CycleDetector {
             return builder.toString();
         }
 
-        public CycleNode next() {
-            return next;
-        }
-
-        public CycleNode previous() {
-            return previous;
-        }
     }
 
     /**
@@ -63,7 +68,7 @@ public final class CycleDetector {
      * given cycle A -&gt; B -&gt; C -&gt; A, returns A -&gt; B -&gt; C.
      *
      * @param type type to check
-     * @return cycle node detected
+     * @return cycle node detected, or null if no cycle detected
      */
     public CycleNode start(Type type) {
         CycleNode start = index.get(type);

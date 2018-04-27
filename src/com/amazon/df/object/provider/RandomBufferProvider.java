@@ -17,6 +17,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.function.Function;
 
+/**
+ * Default buffer provider, generate buffer filled with random values.
+ */
 @AllArgsConstructor
 public class RandomBufferProvider implements Provider {
 

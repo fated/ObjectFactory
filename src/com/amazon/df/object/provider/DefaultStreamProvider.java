@@ -14,12 +14,18 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
+/**
+ * Default stream provider, with a random size of stream that generates a series random objects.
+ */
 @AllArgsConstructor
 public class DefaultStreamProvider implements Provider, WithRandomSize {
 
     private final ObjectFactory objectFactory;
     private final Random random;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings("unchecked")
     public <T> T get(Type type, CycleDetector cycleDetector) {
@@ -45,6 +51,9 @@ public class DefaultStreamProvider implements Provider, WithRandomSize {
         throw new IllegalArgumentException("Unknown type: " + type);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean recognizes(Type type) {
         if (type == null) {

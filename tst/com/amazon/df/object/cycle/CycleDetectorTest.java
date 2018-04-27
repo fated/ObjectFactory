@@ -25,8 +25,8 @@ class CycleDetectorTest {
         cn = cycleDetector.start(D.class);
 
         assertNotNull(cn);
-        assertNull(cn.next());
-        assertNull(cn.previous());
+        assertNull(cn.getNext());
+        assertNull(cn.getPrevious());
 
         assertEquals("com.amazon.df.object.cycle.CycleDetectorTest$D", cn.toString());
 
@@ -43,15 +43,15 @@ class CycleDetectorTest {
         cn = cycleDetector.start(C.class);
 
         assertNotNull(cn);
-        assertNull(cn.next());
-        assertNotNull(cn.previous());
+        assertNull(cn.getNext());
+        assertNotNull(cn.getPrevious());
 
         assertEquals("com.amazon.df.object.cycle.CycleDetectorTest$D -> com.amazon.df.object.cycle.CycleDetectorTest$C",
-                     cn.previous().toString());
+                     cn.getPrevious().toString());
 
         assertEquals("com.amazon.df.object.cycle.CycleDetectorTest$C", cn.toString());
 
-        assertFalse(cn.equals(cn.previous()));
+        assertFalse(cn.equals(cn.getPrevious()));
         assertFalse(cn.equals(new Object()));
         assertTrue(cn.hashCode() > 0);
 

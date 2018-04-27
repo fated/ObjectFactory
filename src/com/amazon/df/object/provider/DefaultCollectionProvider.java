@@ -18,12 +18,18 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 
+/**
+ * Default collection provider, provide list, set, queue with random size and random elements.
+ */
 @AllArgsConstructor
 public class DefaultCollectionProvider implements Provider, WithRandomSize, WithResolver {
 
     private final ObjectFactory objectFactory;
     private final Random random;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings("unchecked")
     public <T> T get(Type type, CycleDetector cycleDetector) {
@@ -49,6 +55,16 @@ public class DefaultCollectionProvider implements Provider, WithRandomSize, With
         throw new IllegalArgumentException("Unknown type: " + type);
     }
 
+    /**
+     * Create an empty collection with specify capacity, if given class is interface or abstract,
+     * it will try to use default concrete class or try to resolve the concrete class.
+     *
+     * @param clazz collection type to create
+     * @param length the initial capacity for the collection
+     * @return created empty collection
+     * @throws IllegalArgumentException if type is unknown
+     * @throws ObjectCreationException if fail to create object
+     */
     private Collection<?> createCollection(Class<?> clazz, int length) {
         Class<?> concreteClazz = clazz;
 
@@ -76,6 +92,9 @@ public class DefaultCollectionProvider implements Provider, WithRandomSize, With
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean recognizes(Type type) {
         if (type == null) {

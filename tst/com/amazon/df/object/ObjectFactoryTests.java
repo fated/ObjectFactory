@@ -217,15 +217,6 @@ class ObjectFactoryTests {
             }
         });
 
-        Method processBindings = ObjectFactory.class.getDeclaredMethod("processBindings", List.class);
-        processBindings.setAccessible(true);
-
-        try {
-            processBindings.invoke(objectFactory, (List) null);
-        } catch (Exception e) {
-            fail("should not throws");
-        }
-
         Method newInstance = ObjectFactory.class.getDeclaredMethod("newInstance", Class.class, CycleDetector.class);
         newInstance.setAccessible(true);
 

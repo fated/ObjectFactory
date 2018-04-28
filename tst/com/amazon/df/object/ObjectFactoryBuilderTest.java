@@ -2,6 +2,7 @@ package com.amazon.df.object;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.amazon.df.object.binding.Bindings;
 import com.amazon.df.object.cycle.NullCycleTerminator;
@@ -13,6 +14,8 @@ import com.amazon.df.object.spy.DefaultClassSpy;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Random;
 
 class ObjectFactoryBuilderTest {
@@ -50,7 +53,7 @@ class ObjectFactoryBuilderTest {
     }
 
     @Test
-    void testIllegalFieldsInBuild() throws NoSuchFieldException, IllegalAccessException {
+    void testIllegalFieldsInBuild() throws Exception {
         ObjectFactoryBuilder builder = ObjectFactoryBuilder.getDefaultBuilder();
 
         Field minSize = ObjectFactoryBuilder.class.getDeclaredField("minSize");
@@ -90,6 +93,15 @@ class ObjectFactoryBuilderTest {
         ObjectFactory factory = builder.build();
         assertNotNull(factory);
         assertNotNull(factory.getRandom());
+
+        Method processBindings = ObjectFactoryBuilder.class.getDeclaredMethod("processBindings", List.class);
+        processBindings.setAccessible(true);
+
+        try {
+            processBindings.invoke(builder, (List) null);
+        } catch (Exception e) {
+            fail("should not throws");
+        }
     }
 
 }

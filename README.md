@@ -37,8 +37,8 @@ DfObjectFactory is fairly easy to use:
 
     // Create ObjectFactory with customized config, we provide ways to change almost all config through builder
     final ObjectFactory objectFactory = ObjectFactoryBuilder.getDefaultBuilder()
-                                                            .minSize(10)
                                                             .maxSize(20)
+                                                            .minSize(10)
                                                             .build();
 
     // Create object with object factory by specifying class

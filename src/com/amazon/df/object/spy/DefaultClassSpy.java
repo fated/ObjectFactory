@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 /**
  * Default implementation of {@link ClassSpy}.
  */
-public final class DefaultClassSpy implements ClassSpy {
+public class DefaultClassSpy implements ClassSpy {
 
     /**
      * Finds the constructor with least number of parameters.

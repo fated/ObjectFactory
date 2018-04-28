@@ -87,8 +87,7 @@ public final class ObjectFactoryBuilder {
     private boolean failOnMissingPrimitiveProvider = DEFAULT_FAIL_ON_MISSING_PRIMITIVE_PROVIDER;
 
     private static final ObjectFactoryBuilder DEFAULT_OBJECT_FACTORY_BUILDER =
-            new ObjectFactoryBuilder().terminators(new NullCycleTerminator())
-                                      .resolvers(new NullResolver())
+            new ObjectFactoryBuilder().resolvers(new NullResolver())
                                       .classSpy(new DefaultClassSpy())
                                       .random(ThreadLocalRandom.current());
 
@@ -302,6 +301,9 @@ public final class ObjectFactoryBuilder {
         if (classSpy == null) {
             throw new IllegalArgumentException("Class Spy instance must be non-null");
         }
+
+        // Add null cycle terminator at the end of terminator list to avoid cycle not terminated issue
+        this.terminators.add(new NullCycleTerminator());
 
         return new ObjectFactory(this);
     }

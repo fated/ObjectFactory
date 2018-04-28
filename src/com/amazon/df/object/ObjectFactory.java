@@ -29,7 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A thread-safe object factory to generate object with random values populated for given type.
  */
 @ThreadSafe
-public class ObjectFactory {
+public final class ObjectFactory {
 
     // type -> [ field type -> provider ]
     private final Map<Type, Map<Type, Provider>> fieldTypeBindings = new HashMap<>();

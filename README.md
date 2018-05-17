@@ -1,5 +1,8 @@
 # Object Factory
 
+[![Build Status](https://travis-ci.org/fated/ObjectFactory.svg?branch=master)](https://travis-ci.org/fated/ObjectFactory)
+[![license](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](https://opensource.org/licenses/MIT)
+
 Object Factory aims at simplifying the process of creating randomized objects that could be used
 for unit testing. It would save lots of developers' time and make writing unit tests not so tedious.
 

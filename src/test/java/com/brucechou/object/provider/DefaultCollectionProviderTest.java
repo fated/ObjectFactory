@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.brucechou.object.ObjectCreationException;
 import com.brucechou.object.resolver.ClasspathResolver;
+import com.brucechou.object.resolver.Resolver;
 import com.google.common.reflect.TypeToken;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -28,9 +29,10 @@ import java.util.Set;
 
 class DefaultCollectionProviderTest implements ProviderTestBase {
 
+    private Resolver mockResolver = Mockito.mock(Resolver.class);
     private DefaultCollectionProvider provider =
             new DefaultCollectionProvider(getObjectFactoryBuilder()
-                                                  .resolvers(new ClasspathResolver(ConcreteCollection.class.getClassLoader()))
+                                                  .resolvers(mockResolver)
                                                   .build(),
                                           getRandom());
 
@@ -68,6 +70,8 @@ class DefaultCollectionProviderTest implements ProviderTestBase {
                   () -> assertTrue(genericQueue.isEmpty()),
                   () -> assertTrue(genericQueue instanceof ArrayDeque));
 
+        Mockito.doReturn(ConcreteCollection.class).when(mockResolver).resolve(UnknownCollection.class);
+
         Type genericUnknownCollectionType = new TypeToken<UnknownCollection>() {}.getType();
 
         UnknownCollection unknownCollection = provider.get(genericUnknownCollectionType);
@@ -99,9 +103,9 @@ class DefaultCollectionProviderTest implements ProviderTestBase {
         assertThrows(IllegalArgumentException.class, () -> provider.get(Mockito.mock(TypeVariable.class)));
     }
 
-    public interface UnknownCollection<E> extends Collection<E> {}
+    interface UnknownCollection<E> extends Collection<E> {}
 
-    public interface UnknownCollection2<E> extends Collection<E> {}
+    interface UnknownCollection2<E> extends Collection<E> {}
 
     static class ConcreteCollection<E> implements UnknownCollection<E> {
 

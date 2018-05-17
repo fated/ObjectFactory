@@ -3,6 +3,7 @@ package com.brucechou.object.resolver;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class ClasspathResolverTest {
@@ -22,6 +23,7 @@ class ClasspathResolverTest {
     }
 
     @Test
+    @Disabled
     void resolve() {
         Resolver resolver = new ClasspathResolver();
 

@@ -1,31 +1,24 @@
-# Direct Fulfillment Object Factory
+# Object Factory
 
-Direct Fulfillment Object Factory aims at simplifying the process of creating randomized objects that could be used
+Object Factory aims at simplifying the process of creating randomized objects that could be used
 for unit testing. It would save lots of developers' time and make writing unit tests not so tedious.
 
-DfObjectFactory is designed to be used by multi-threads, the main class and default implementations are all follow
-thread-safe design. DfObjectFactory also provides lots of providers to generating almost all common types we used 
+ObjectFactory is designed to be used by multi-threads, the main class and default implementations are all follow
+thread-safe design. ObjectFactory also provides lots of providers to generating almost all common types we used 
 in development, those providers can also be used solely to generate random objects for specific types.
-DfObjectFactory also follows an extensible design, it provides lots of extensible points that allow users to implement
+ObjectFactory also follows an extensible design, it provides lots of extensible points that allow users to implement
 their own logic to satisfy any of their special requirements.
 
 ## How To Start
 
-DfObjectFactory is fairly easy to use:
-
-1. Add [DfObjectFactory](https://code.amazon.com/packages/DfObjectFactory/trees/mainline) to your version set
+ObjectFactory is fairly easy to use:
 
 1. Add package as test dependency:
-    ```perl
-    test-dependencies = {
-        1.0 = {
-            # Other dependencies
-            DfObjectFactory = 1.0;
-        };
-    };
+    ```
+    TODO
     ```
 
-1. The main class of DfObjectFactory is ObjectFactory, which provides a single API `<T> T generate(Type type)`
+1. The main class of ObjectFactory is ObjectFactory, which provides a single API `<T> T generate(Type type)`
    for generating random object for given type. Check out the below example that creates an ObjectFactory from
    ObjectFactoryBuilder and creates random objects:
     ```java
@@ -51,7 +44,7 @@ DfObjectFactory is fairly easy to use:
 
 ## Supported Types 
 
-DfObjectFactory supports following types:
+ObjectFactory supports following types:
 
 * Primitives
   * `boolean`, `byte`, `char`, `double`, `float`, `int`, `long`, `short`
@@ -77,7 +70,7 @@ DfObjectFactory supports following types:
 
 ## Available Configurations
 
-DfObjectFactory also provides additional configurations you could use to customize your object factory.
+ObjectFactory also provides additional configurations you could use to customize your object factory.
 
 ### Provider
 
@@ -147,7 +140,7 @@ ObjectFactory objectFactory =
 
 ## Extensible Points
 
-DfObjectFactory cannot cover all problems while generating objects. But we provide lots of extensible points,
+ObjectFactory cannot cover all problems while generating objects. But we provide lots of extensible points,
 you could write your own implementation to customize object factory to satisfy your requirement.
 
 ### Provider
@@ -175,7 +168,7 @@ implement these interfaces and use the methods they provide directly.
 
 ### ClassSpy
 
-DfObjectFactory use ClassSpy to find specific constructor, find specific methods and find specific fields. We move some
+ObjectFactory use ClassSpy to find specific constructor, find specific methods and find specific fields. We move some
 default logic into the interface, so users can easily override them to satisfy their own requirements.
 
 ClassSpy provides three main APIs and some auxiliary methods as below:
@@ -217,7 +210,7 @@ You can also change the logic to determine what fields to set, what constructor 
 
 ### CycleTerminator
 
-DfObjectFactory uses null cycle terminator as default, which terminates all cycle node and return null as the value of
+ObjectFactory uses null cycle terminator as default, which terminates all cycle node and return null as the value of
 node value. If you want to change the logic, just write your own terminator and add it while building your object factory.
 We will still add our null cycle terminator at the end of terminator list to avoid all cycle node will be terminated.
 
@@ -229,12 +222,3 @@ terminator.
 always return `null`.
 
 Users can add their own terminator to handle specific type of cycle detected, and return specific value instead of `null`.
-
-## Credits
-
-Thanks to [SpicyObjectFactory](https://code.amazon.com/packages/SpicyObjectFactory/trees/mainline) and
-[ObjectFactory](https://code.amazon.com/packages/ObjectFactory/trees/ObjectFactory-1.0) which inspire this project.
-
-## Contact
-
-For any comments, suggestions or feature requests, please contact [chenzhez@](mailto:chenzhez@amazon.com)

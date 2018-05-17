@@ -70,6 +70,22 @@ class DefaultCollectionProviderTest implements ProviderTestBase {
                   () -> assertTrue(genericQueue.isEmpty()),
                   () -> assertTrue(genericQueue instanceof ArrayDeque));
 
+        Type genericCollectionType = new TypeToken<Collection>() {}.getType();
+
+        Collection genericCollection = provider.get(genericCollectionType);
+
+        assertAll(() -> assertNotNull(genericCollection),
+                  () -> assertTrue(genericCollection.isEmpty()),
+                  () -> assertTrue(genericCollection instanceof ArrayList));
+
+        Type stringCollectionType = new TypeToken<Collection<String>>() {}.getType();
+
+        Collection stringCollection = provider.get(stringCollectionType);
+
+        assertAll(() -> assertNotNull(stringCollection),
+                  () -> assertFalse(stringCollection.isEmpty()),
+                  () -> assertTrue(stringCollection instanceof ArrayList));
+
         Mockito.doReturn(ConcreteCollection.class).when(mockResolver).resolve(UnknownCollection.class);
 
         Type genericUnknownCollectionType = new TypeToken<UnknownCollection>() {}.getType();

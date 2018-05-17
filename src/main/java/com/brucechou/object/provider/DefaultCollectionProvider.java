@@ -71,7 +71,7 @@ public class DefaultCollectionProvider implements Provider, WithRandomSize, With
         if (Inspector.isInterface(clazz) || Inspector.isAbstract(clazz)) {
             if (Set.class.isAssignableFrom(clazz)) {
                 return new HashSet<>(length);
-            } else if (List.class.isAssignableFrom(clazz)) {
+            } else if (List.class.isAssignableFrom(clazz) || Collection.class.equals(clazz)) {
                 return new ArrayList<>(length);
             } else if (Queue.class.isAssignableFrom(clazz)) {
                 return new ArrayDeque<>(length);

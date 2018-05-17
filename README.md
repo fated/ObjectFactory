@@ -1,6 +1,7 @@
 # Object Factory
 
 [![Build Status](https://travis-ci.org/fated/ObjectFactory.svg?branch=master)](https://travis-ci.org/fated/ObjectFactory)
+[![Coverage Status](https://coveralls.io/repos/github/fated/ObjectFactory/badge.svg?branch=master)](https://coveralls.io/github/fated/ObjectFactory?branch=master)
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](https://opensource.org/licenses/MIT)
 
 Object Factory aims at simplifying the process of creating randomized objects that could be used

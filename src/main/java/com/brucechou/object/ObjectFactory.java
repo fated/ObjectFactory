@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -48,9 +49,17 @@ public final class ObjectFactory {
     @Getter
     private final List<Resolver> resolvers;
     private final List<CycleTerminator> terminators;
+    private final Supplier<Random> randomSupplier;
 
-    @Getter
-    private final Random random;
+    /**
+     * Get random instance.
+     *
+     * @return random instance
+     */
+    public Random getRandom() {
+        return randomSupplier.get();
+    }
+
     @Getter
     private final ClassSpy classSpy;
 
@@ -66,14 +75,16 @@ public final class ObjectFactory {
      * @param builder object factory builder
      */
     ObjectFactory(ObjectFactoryBuilder builder) {
+        // try random supplier first and then try random instance
+        this.randomSupplier = Optional.ofNullable(builder.getRandomSupplier())
+                                      .orElseGet(() -> builder::getRandom);
         this.resolvers = Collections.unmodifiableList(builder.getResolvers());
         // additional providers are always put before default providers
         this.providers = Stream.concat(builder.getAdditionalProviders().stream(), builder.getProviders().stream())
-                               .map(f -> f.apply(this, builder.getRandom()))
+                               .map(f -> f.apply(this, this.randomSupplier))
                                .collect(collectingAndThen(toList(), Collections::unmodifiableList));
         this.terminators = Collections.unmodifiableList(builder.getTerminators());
         this.classSpy = builder.getClassSpy();
-        this.random = builder.getRandom();
         this.minSize = builder.getMinSize();
         this.maxSize = builder.getMaxSize();
         this.failOnMissingPrimitiveProvider = builder.isFailOnMissingPrimitiveProvider();

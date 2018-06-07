@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Default primitive provider, generate random values with given random instance.
@@ -40,7 +41,7 @@ public class RandomPrimitiveProvider implements Provider {
         FUNCTIONS.put(Double.class, FUNCTIONS.get(double.class));
     }
 
-    private final Random random;
+    private final Supplier<Random> randomSupplier;
 
     /**
      * Get random primitive value.
@@ -50,7 +51,7 @@ public class RandomPrimitiveProvider implements Provider {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T get(Type type) {
-        return (T) FUNCTIONS.get(type).apply(random);
+        return (T) FUNCTIONS.get(type).apply(randomSupplier.get());
     }
 
     /**

@@ -14,7 +14,7 @@ import java.util.Random;
 
 class RandomDateProviderTest implements ProviderTestBase {
 
-    private RandomDateProvider provider = new RandomDateProvider(getRandom());
+    private RandomDateProvider provider = new RandomDateProvider(getRandomSupplier());
 
     @Test
     void get() {
@@ -29,7 +29,7 @@ class RandomDateProviderTest implements ProviderTestBase {
     @Test
     void getMinMaxLong() {
         Random random = Mockito.mock(Random.class);
-        RandomDateProvider newProvider = new RandomDateProvider(random);
+        RandomDateProvider newProvider = new RandomDateProvider(() -> random);
 
         Mockito.doReturn(Long.MIN_VALUE).when(random).nextLong();
         Date date = newProvider.get(Date.class);

@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Random;
+import java.util.function.Supplier;
 import java.util.stream.BaseStream;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
@@ -21,7 +22,7 @@ import java.util.stream.Stream;
 public class DefaultStreamProvider implements Provider, WithRandomSize {
 
     private final ObjectFactory objectFactory;
-    private final Random random;
+    private final Supplier<Random> randomSupplier;
 
     /**
      * {@inheritDoc}
@@ -31,11 +32,11 @@ public class DefaultStreamProvider implements Provider, WithRandomSize {
     public <T> T get(Type type, CycleDetector cycleDetector) {
         if (type instanceof Class) {
             if (IntStream.class.isAssignableFrom((Class<?>) type)) {
-                return (T) random.ints(getRandomSize(objectFactory, random));
+                return (T) randomSupplier.get().ints(getRandomSize(objectFactory, randomSupplier.get()));
             } else if (LongStream.class.isAssignableFrom((Class<?>) type)) {
-                return (T) random.longs(getRandomSize(objectFactory, random));
+                return (T) randomSupplier.get().longs(getRandomSize(objectFactory, randomSupplier.get()));
             } else if (DoubleStream.class.isAssignableFrom((Class<?>) type)) {
-                return (T) random.doubles(getRandomSize(objectFactory, random));
+                return (T) randomSupplier.get().doubles(getRandomSize(objectFactory, randomSupplier.get()));
             } else if (Stream.class.isAssignableFrom((Class<?>) type)) {
                 return (T) Stream.empty();
             }
@@ -45,7 +46,7 @@ public class DefaultStreamProvider implements Provider, WithRandomSize {
             Type elementType = ((ParameterizedType) type).getActualTypeArguments()[0];
 
             return (T) Stream.generate(() -> objectFactory.generate(elementType, cycleDetector))
-                             .limit(getRandomSize(objectFactory, random));
+                             .limit(getRandomSize(objectFactory, randomSupplier.get()));
         }
 
         throw new IllegalArgumentException("Unknown type: " + type);

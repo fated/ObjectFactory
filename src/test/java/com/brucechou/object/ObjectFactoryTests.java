@@ -159,7 +159,7 @@ class ObjectFactoryTests {
 
     @Test
     void testGeneratePojo() {
-        ObjectFactory objectFactory = ObjectFactoryBuilder.getDefaultObjectFactory(new Random());
+        ObjectFactory objectFactory = ObjectFactoryBuilder.getDefaultObjectFactory(Random::new);
 
         A a = objectFactory.generate(A.class);
 

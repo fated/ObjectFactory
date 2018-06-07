@@ -12,7 +12,7 @@ import java.util.Arrays;
 
 class DefaultEnumProviderTest implements ProviderTestBase {
 
-    private DefaultEnumProvider provider = new DefaultEnumProvider(getRandom());
+    private DefaultEnumProvider provider = new DefaultEnumProvider(getRandomSupplier());
 
     @Test
     void get() {

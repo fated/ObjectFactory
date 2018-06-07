@@ -14,7 +14,7 @@ import java.util.Random;
 
 class RandomBigNumberProviderTest implements ProviderTestBase {
 
-    private RandomBigNumberProvider provider = new RandomBigNumberProvider(getRandom());
+    private RandomBigNumberProvider provider = new RandomBigNumberProvider(getRandomSupplier());
 
     @Test
     void get() {
@@ -26,7 +26,7 @@ class RandomBigNumberProviderTest implements ProviderTestBase {
         Random random = Mockito.spy(new Random());
         Mockito.doReturn(true).when(random).nextBoolean();
 
-        RandomBigNumberProvider mockProvider = new RandomBigNumberProvider(random);
+        RandomBigNumberProvider mockProvider = new RandomBigNumberProvider(() -> random);
         assertTrue(((BigInteger) mockProvider.get(BigInteger.class)).compareTo(BigInteger.ZERO) <= 0);
         assertTrue(((BigDecimal) mockProvider.get(BigDecimal.class)).scale() <= 0);
 

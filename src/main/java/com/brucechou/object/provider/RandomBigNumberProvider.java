@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Default big number provider, generate big integer or big decimal with random bit length,
@@ -40,7 +41,7 @@ public class RandomBigNumberProvider implements Provider {
         });
     }
 
-    private final Random random;
+    private final Supplier<Random> randomSupplier;
 
     /**
      * Get random big number.
@@ -50,7 +51,7 @@ public class RandomBigNumberProvider implements Provider {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T get(Type type) {
-        return (T) FUNCTIONS.get(type).apply(random);
+        return (T) FUNCTIONS.get(type).apply(randomSupplier.get());
     }
 
     /**

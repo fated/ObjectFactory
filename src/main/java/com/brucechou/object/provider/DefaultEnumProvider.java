@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 
 import java.lang.reflect.Type;
 import java.util.Random;
+import java.util.function.Supplier;
 
 /**
  * Default enum provider, return random enum value from all available enums.
@@ -13,7 +14,7 @@ import java.util.Random;
 @AllArgsConstructor
 public class DefaultEnumProvider implements Provider {
 
-    private final Random random;
+    private final Supplier<Random> randomSupplier;
 
     /**
      * {@inheritDoc}
@@ -25,7 +26,7 @@ public class DefaultEnumProvider implements Provider {
 
         final Object[] enums = clazz.getEnumConstants();
 
-        return (T) (enums.length == 0 ? null : enums[random.nextInt(enums.length)]);
+        return (T) (enums.length == 0 ? null : enums[randomSupplier.get().nextInt(enums.length)]);
     }
 
     /**

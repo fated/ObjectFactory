@@ -17,7 +17,7 @@ import java.nio.ShortBuffer;
 
 class RandomBufferProviderTest implements ProviderTestBase {
 
-    private RandomBufferProvider provider = new RandomBufferProvider(getRandom());
+    private RandomBufferProvider provider = new RandomBufferProvider(getRandomSupplier());
 
     @Test
     void get() {

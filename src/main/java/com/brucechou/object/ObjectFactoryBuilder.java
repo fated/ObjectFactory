@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 /**
  * Object factory builder to help create {@link ObjectFactory}.
@@ -52,7 +53,7 @@ public final class ObjectFactoryBuilder {
 
     private static final boolean DEFAULT_FAIL_ON_MISSING_PRIMITIVE_PROVIDER = false;
 
-    private static final List<BiFunction<ObjectFactory, Random, Provider>> DEFAULT_PROVIDERS;
+    private static final List<BiFunction<ObjectFactory, Supplier<Random>, Provider>> DEFAULT_PROVIDERS;
 
     static {
         // Order matters, primitive types -> enum type -> array type
@@ -90,12 +91,13 @@ public final class ObjectFactoryBuilder {
     // field name -> provider
     private Map<String, Provider> globalNameBindings;
 
-    private List<BiFunction<ObjectFactory, Random, Provider>> providers;
-    private List<BiFunction<ObjectFactory, Random, Provider>> additionalProviders;
+    private List<BiFunction<ObjectFactory, Supplier<Random>, Provider>> providers;
+    private List<BiFunction<ObjectFactory, Supplier<Random>, Provider>> additionalProviders;
     private List<Resolver> resolvers;
     private List<CycleTerminator> terminators;
     private ClassSpy classSpy;
     private Random random;
+    private Supplier<Random> randomSupplier;
 
     private int minSize = DEFAULT_MIN_SIZE;
     private int maxSize = DEFAULT_MAX_SIZE;
@@ -105,7 +107,7 @@ public final class ObjectFactoryBuilder {
     private static final ObjectFactoryBuilder DEFAULT_OBJECT_FACTORY_BUILDER =
             new ObjectFactoryBuilder().resolvers(new NullResolver())
                                       .classSpy(new DefaultClassSpy())
-                                      .random(ThreadLocalRandom.current());
+                                      .randomSupplier(ThreadLocalRandom::current);
 
     /**
      * Get default object factory builder with default config.
@@ -119,11 +121,11 @@ public final class ObjectFactoryBuilder {
     /**
      * Get default object factory with specific random instance.
      *
-     * @param random random instance
+     * @param randomSupplier random supplier
      * @return a created object factory with default builder and specific random
      */
-    public static ObjectFactory getDefaultObjectFactory(Random random) {
-        return DEFAULT_OBJECT_FACTORY_BUILDER.copy().random(random).build();
+    public static ObjectFactory getDefaultObjectFactory(Supplier<Random> randomSupplier) {
+        return DEFAULT_OBJECT_FACTORY_BUILDER.copy().randomSupplier(randomSupplier).build();
     }
 
     /**
@@ -159,7 +161,7 @@ public final class ObjectFactoryBuilder {
      * @return this object factory builder
      */
     @SafeVarargs
-    public final ObjectFactoryBuilder providers(BiFunction<ObjectFactory, Random, Provider>... providers) {
+    public final ObjectFactoryBuilder providers(BiFunction<ObjectFactory, Supplier<Random>, Provider>... providers) {
         this.providers = new ArrayList<>(Arrays.asList(providers));
         return this;
     }
@@ -172,7 +174,8 @@ public final class ObjectFactoryBuilder {
      * @return this object factory builder
      */
     @SafeVarargs
-    public final ObjectFactoryBuilder additionalProvider(BiFunction<ObjectFactory, Random, Provider>... providers) {
+    public final ObjectFactoryBuilder additionalProvider(
+            BiFunction<ObjectFactory, Supplier<Random>, Provider>... providers) {
         this.additionalProviders.addAll(Arrays.asList(providers));
         return this;
     }
@@ -274,6 +277,21 @@ public final class ObjectFactoryBuilder {
     }
 
     /**
+     * Add random supplier to current builder.
+     *
+     * @param randomSupplier defined random supplier to add
+     * @return this object factory builder
+     * @throws IllegalArgumentException if given random supplier is null
+     */
+    public ObjectFactoryBuilder randomSupplier(Supplier<Random> randomSupplier) {
+        if (randomSupplier == null) {
+            throw new IllegalArgumentException("Random supplier must be non-null");
+        }
+        this.randomSupplier = randomSupplier;
+        return this;
+    }
+
+    /**
      * Copy this object factory builder for creating a new one.
      *
      * @return cloned object factory builder
@@ -286,6 +304,7 @@ public final class ObjectFactoryBuilder {
         b.terminators = new ArrayList<>(terminators);
         b.classSpy = classSpy;
         b.random = random;
+        b.randomSupplier = randomSupplier;
         b.minSize = minSize;
         b.maxSize = maxSize;
         b.failOnMissingPrimitiveProvider = failOnMissingPrimitiveProvider;
@@ -316,8 +335,8 @@ public final class ObjectFactoryBuilder {
             throw new IllegalArgumentException("Max size must be greater than or equal to min size");
         }
 
-        if (random == null) {
-            throw new IllegalArgumentException("Random instance must be non-null");
+        if (random == null && randomSupplier == null) {
+            throw new IllegalArgumentException("Random instance or random supplier must not be null at same time");
         }
 
         if (classSpy == null) {

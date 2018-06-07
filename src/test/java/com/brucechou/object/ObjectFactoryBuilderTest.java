@@ -1,6 +1,8 @@
 package com.brucechou.object;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -17,6 +19,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 
 class ObjectFactoryBuilderTest {
 
@@ -25,6 +29,7 @@ class ObjectFactoryBuilderTest {
         ObjectFactoryBuilder builder = ObjectFactoryBuilder.getDefaultBuilder();
 
         assertThrows(IllegalArgumentException.class, () -> builder.random(null));
+        assertThrows(IllegalArgumentException.class, () -> builder.randomSupplier(null));
         assertThrows(IllegalArgumentException.class, () -> builder.classSpy(null));
         assertThrows(IllegalArgumentException.class, () -> builder.maxSize(-1));
         assertThrows(IllegalArgumentException.class, () -> builder.maxSize(0));
@@ -49,12 +54,16 @@ class ObjectFactoryBuilderTest {
 
         assertNotNull(objectFactory);
 
-        assertNotNull(ObjectFactoryBuilder.getDefaultObjectFactory(new Random()));
+        assertNotNull(ObjectFactoryBuilder.getDefaultObjectFactory(Random::new));
+
+        // default builder does not set random instance
+        assertNull(ObjectFactoryBuilder.getDefaultBuilder().getRandom());
     }
 
     @Test
     void testIllegalFieldsInBuild() throws Exception {
-        ObjectFactoryBuilder builder = ObjectFactoryBuilder.getDefaultBuilder();
+        ObjectFactoryBuilder builder = ObjectFactoryBuilder.getDefaultBuilder()
+                                                           .random(new Random());
 
         Field minSize = ObjectFactoryBuilder.class.getDeclaredField("minSize");
         minSize.setAccessible(true);
@@ -62,6 +71,8 @@ class ObjectFactoryBuilderTest {
         maxSize.setAccessible(true);
         Field random = ObjectFactoryBuilder.class.getDeclaredField("random");
         random.setAccessible(true);
+        Field randomSupplier = ObjectFactoryBuilder.class.getDeclaredField("randomSupplier");
+        randomSupplier.setAccessible(true);
         Field classSpy = ObjectFactoryBuilder.class.getDeclaredField("classSpy");
         classSpy.setAccessible(true);
 
@@ -79,9 +90,17 @@ class ObjectFactoryBuilderTest {
         assertThrows(IllegalArgumentException.class, builder::build);
 
         maxSize.set(builder, 10);
+        randomSupplier.set(builder, null);
         random.set(builder, null);
 
         assertThrows(IllegalArgumentException.class, builder::build);
+
+        random.set(builder, new Random());
+        assertDoesNotThrow(builder::build);
+
+        random.set(builder, null);
+        randomSupplier.set(builder, (Supplier) ThreadLocalRandom::current);
+        assertDoesNotThrow(builder::build);
 
         random.set(builder, new Random());
         classSpy.set(builder, null);

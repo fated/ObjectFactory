@@ -12,6 +12,7 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.function.Supplier;
 
 /**
  * Default map provider, generate map with random keys and values.
@@ -20,7 +21,7 @@ import java.util.Random;
 public class DefaultMapProvider implements Provider, WithRandomSize {
 
     private final ObjectFactory objectFactory;
-    private final Random random;
+    private final Supplier<Random> randomSupplier;
 
     /**
      * {@inheritDoc}
@@ -35,7 +36,7 @@ public class DefaultMapProvider implements Provider, WithRandomSize {
         if (type instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) type;
             Class<?> raw = (Class<?>) parameterizedType.getRawType();
-            int entries = getRandomSize(objectFactory, random);
+            int entries = getRandomSize(objectFactory, randomSupplier.get());
 
             Map<?, ?> map = createMap(raw, entries);
 

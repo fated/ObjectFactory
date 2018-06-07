@@ -21,7 +21,7 @@ import java.util.Map;
 
 class DefaultMapProviderTest implements ProviderTestBase {
 
-    private DefaultMapProvider provider = new DefaultMapProvider(getObjectFactory(), getRandom());
+    private DefaultMapProvider provider = new DefaultMapProvider(getObjectFactory(), getRandomSupplier());
 
     @Test
     void get() {

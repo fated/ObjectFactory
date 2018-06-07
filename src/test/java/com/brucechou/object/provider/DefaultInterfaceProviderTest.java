@@ -37,7 +37,7 @@ class DefaultInterfaceProviderTest implements ProviderTestBase {
                                                                   return (Class<? extends T>) ConcreteTestInterface.class;
                                                               }
                                                           })
-                                                          .random(getRandom())
+                                                          .randomSupplier(getRandomSupplier())
                                                           .build();
 
         DefaultInterfaceProvider newProvider = new DefaultInterfaceProvider(objectFactory);

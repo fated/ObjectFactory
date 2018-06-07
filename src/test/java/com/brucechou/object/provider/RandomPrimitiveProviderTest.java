@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 class RandomPrimitiveProviderTest implements ProviderTestBase {
 
-    private RandomPrimitiveProvider provider = new RandomPrimitiveProvider(getRandom());
+    private RandomPrimitiveProvider provider = new RandomPrimitiveProvider(getRandomSupplier());
 
     @Test
     void get() {

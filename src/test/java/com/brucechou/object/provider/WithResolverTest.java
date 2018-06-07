@@ -22,7 +22,7 @@ class WithResolverTest implements ProviderTestBase {
 
         ObjectFactory objectFactory = ObjectFactoryBuilder.getDefaultBuilder()
                                                           .resolvers(resolver)
-                                                          .random(getRandom())
+                                                          .randomSupplier(getRandomSupplier())
                                                           .build();
 
         WithResolver sut = new WithResolver() {};

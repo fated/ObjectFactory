@@ -17,7 +17,7 @@ import java.util.Optional;
 
 class DefaultArrayProviderTest implements ProviderTestBase {
 
-    private DefaultArrayProvider provider = new DefaultArrayProvider(getObjectFactory(), getRandom());
+    private DefaultArrayProvider provider = new DefaultArrayProvider(getObjectFactory(), getRandomSupplier());
 
     @Test
     void testGet() throws Exception {

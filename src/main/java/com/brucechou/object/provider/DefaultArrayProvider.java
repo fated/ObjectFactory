@@ -9,6 +9,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Type;
 import java.util.Random;
+import java.util.function.Supplier;
 
 /**
  * Default array provider, try to create array with random size, and fill it
@@ -18,7 +19,7 @@ import java.util.Random;
 public class DefaultArrayProvider implements Provider, WithRandomSize {
 
     private final ObjectFactory objectFactory;
-    private final Random random;
+    private final Supplier<Random> randomSupplier;
 
     /**
      * {@inheritDoc}
@@ -46,7 +47,7 @@ public class DefaultArrayProvider implements Provider, WithRandomSize {
      */
     private Object createArray(Type type, CycleDetector cycleDetector) {
         Object array;
-        int length = getRandomSize(objectFactory, random);
+        int length = getRandomSize(objectFactory, randomSupplier.get());
         if (type instanceof Class) {
             array = Array.newInstance((Class<?>) type, length);
         } else {

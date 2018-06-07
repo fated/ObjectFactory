@@ -42,7 +42,7 @@ class DefaultAbstractProviderTest implements ProviderTestBase {
                                                                   return (Class<? extends T>) ConcreteTestClass.class;
                                                               }
                                                           })
-                                                          .random(getRandom())
+                                                          .randomSupplier(getRandomSupplier())
                                                           .build();
 
         DefaultAbstractProvider newProvider = new DefaultAbstractProvider(objectFactory);

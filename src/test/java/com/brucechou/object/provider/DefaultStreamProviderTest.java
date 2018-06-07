@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 class DefaultStreamProviderTest implements ProviderTestBase {
 
-    private DefaultStreamProvider provider = new DefaultStreamProvider(getObjectFactory(), getRandom());
+    private DefaultStreamProvider provider = new DefaultStreamProvider(getObjectFactory(), getRandomSupplier());
 
     @Test
     void get() {

@@ -18,7 +18,7 @@ import java.util.List;
 
 class DefaultIterableProviderTest implements ProviderTestBase {
 
-    private DefaultIterableProvider provider = new DefaultIterableProvider(getObjectFactory(), getRandom());
+    private DefaultIterableProvider provider = new DefaultIterableProvider(getObjectFactory(), getRandomSupplier());
 
     @Test
     void get() {

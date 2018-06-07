@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Supplier;
 
 /**
  * Default Iterable provider, with a random size of iterable that iterate a series random objects.
@@ -19,7 +20,7 @@ import java.util.Random;
 public class DefaultIterableProvider implements Provider, WithRandomSize {
 
     private final ObjectFactory objectFactory;
-    private final Random random;
+    private final Supplier<Random> randomSupplier;
 
     /**
      * {@inheritDoc}
@@ -33,7 +34,7 @@ public class DefaultIterableProvider implements Provider, WithRandomSize {
 
         if (type instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) type;
-            int length = getRandomSize(objectFactory, random);
+            int length = getRandomSize(objectFactory, randomSupplier.get());
 
             List<?> collection = new ArrayList<>(length);
 

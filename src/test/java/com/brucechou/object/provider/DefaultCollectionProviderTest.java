@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.brucechou.object.ObjectCreationException;
-import com.brucechou.object.resolver.ClasspathResolver;
 import com.brucechou.object.resolver.Resolver;
 import com.google.common.reflect.TypeToken;
 import org.junit.jupiter.api.Test;
@@ -34,7 +33,7 @@ class DefaultCollectionProviderTest implements ProviderTestBase {
             new DefaultCollectionProvider(getObjectFactoryBuilder()
                                                   .resolvers(mockResolver)
                                                   .build(),
-                                          getRandom());
+                                          getRandomSupplier());
 
     @Test
     void get() {

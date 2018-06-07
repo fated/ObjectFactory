@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Default collection provider, provide list, set, queue with random size and random elements.
@@ -25,7 +26,7 @@ import java.util.Set;
 public class DefaultCollectionProvider implements Provider, WithRandomSize, WithResolver {
 
     private final ObjectFactory objectFactory;
-    private final Random random;
+    private final Supplier<Random> randomSupplier;
 
     /**
      * {@inheritDoc}
@@ -40,7 +41,7 @@ public class DefaultCollectionProvider implements Provider, WithRandomSize, With
         if (type instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) type;
             Class<?> raw = (Class<?>) parameterizedType.getRawType();
-            int length = getRandomSize(objectFactory, random);
+            int length = getRandomSize(objectFactory, randomSupplier.get());
 
             Collection<?> collection = createCollection(raw, length);
 
